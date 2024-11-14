@@ -87,17 +87,17 @@ with st.sidebar:
     if st.button("EDA", use_container_width=True, on_click=set_page_selection, args=('eda',)):
         st.session_state.page_selection = "eda"
 
-    if st.button("Description to Rating Machine Learning & Prediction", use_container_width=True, on_click=set_page_selection, args=('description_to_rating',)):
-        st.session_state.page_selection = "description_to_rating"
+    if st.button("Sentiment Intensity Analysis Model", use_container_width=True, on_click=set_page_selection, args=('sentiment_model',)):
+        st.session_state.page_selection = "sentiment_model"
         
-    if st.button("Coffee Price Prediction", use_container_width=True, on_click=set_page_selection, args=('coffee_price_prediction',)):
+    if st.button("Coffee Price Prediction Model", use_container_width=True, on_click=set_page_selection, args=('coffee_price_prediction',)):
         st.session_state.page_selection = "coffee_price_prediction"
     
-    if st.button("Clustering Machine Learning & Prediction", use_container_width=True, on_click=set_page_selection, args=('clustering_analysis',)):
+    if st.button("Coffee Clustering Model", use_container_width=True, on_click=set_page_selection, args=('clustering_analysis',)):
         st.session_state.page_selection = "clustering_analysis"
     
-    if st.button("Prediction", use_container_width=True, on_click=set_page_selection, args=('prediction',)): 
-        st.session_state.page_selection = "prediction"
+    if st.button("Coffee Recommendation Model", use_container_width=True, on_click=set_page_selection, args=('prediction',)): 
+        st.session_state.page_selection = "coffee_rec_model"
 
     if st.button("Conclusion", use_container_width=True, on_click=set_page_selection, args=('conclusion',)):
         st.session_state.page_selection = "conclusion"
@@ -129,10 +129,12 @@ if st.session_state.page_selection == "about":
 
     1. `Dataset` – A preview of the Coffee Reviews Dataset, the dataset used for this project. 
     2. `EDA` – An Exploratory Data Analysis that focuses on data distribution and correlation of variables tailored for the models we aim to develop. These are visualized through pie charts, word clouds, histograms, and bar charts.
-
-    TBA
-
-    3. `Conclusion` – Contains a summary of the processes and insights gained from the previous steps. 
+    3. `EDA` – An Exploratory Data Analysis that focuses on data distribution and correlation of variables tailored for the models we aim to develop. These are visualized through pie charts, word clouds, histograms, and bar charts.
+    4. `Coffee Price Prediction Model` – A model that uses Random Forest Regressor to predict coffee prices based on categorical data.
+    5. `Sentiment Intensity Analysis Model` – A model that uses [TBA] to predict ratings based on coffee descriptions.
+    6. `Coffee Recommendation Model` – A model that uses [TBA] to curate coffee recommendations based on similar descriptions.
+    7. `Coffee Clustering Model` – A model that uses K-means to group coffees based on price and rating patterns.
+    8. `Conclusion` – Contains a summary of the processes and insights gained from the previous steps. 
     """)
 
 ###################################################################
@@ -363,7 +365,9 @@ elif st.session_state.page_selection == "eda":
             with st.expander('Legend', expanded=True):
                 st.write('''
                     - Data: [Coffee Reviews Dataset](https://www.kaggle.com/datasets/schmoyote/coffee-reviews-dataset).
-                    - :orange[**Pie Chart**]: TBA.
+                    - :orange[**Pie Chart**]: Distribution of coffee types, roasters, roaster locations, and bean origins.
+                    - :orange[**Word Cloud**]: Word frequencies in descriptive reviews.
+                    - :orange[**Histogram**]: Distribution of coffee prices and ratings.
                     ''')
 
             ##### Roast types chart #####
@@ -419,81 +423,8 @@ elif st.session_state.page_selection == "eda":
 ###################################################################
 # Machine Learning Page ###########################################
 elif st.session_state.page_selection == "clustering_analysis":
-    st.header("🤖 Clustering Model Machine Learning & Prediction")
+    st.header("🤖 Coffee Clustering Model")
 
-    # Coffee Price Prediction Page ################################################
-elif st.session_state.page_selection == "coffee_price_prediction":
-    st.header("☕ Coffee Price Prediction")
-
-    # Create a copy of the original DataFrame with a unique name for regression
-    df_coffeeprice_regression = st.session_state.df.copy()  # Use cleaned DataFrame stored in session state
-
-    # Select relevant columns and rename them if pre-processed (already cleaned)
-    df_coffeeprice_regression = df_coffeeprice_regression[['roast', 'origin_2', 'loc_country', '100g_USD']]
-    df_coffeeprice_regression = df_coffeeprice_regression.rename(columns={
-        'origin_2': 'origin_2_processed',
-        'loc_country': 'loc_processed'
-    })
-
-    # Drop rows with missing values if any
-    df_coffeeprice_regression = df_coffeeprice_regression.dropna()
-
-    # Handling Outliers using IQR for '100g_USD'
-    Q1 = df_coffeeprice_regression['100g_USD'].quantile(0.25)
-    Q3 = df_coffeeprice_regression['100g_USD'].quantile(0.75)
-    IQR = Q3 - Q1
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
-    df_coffeeprice_regression = df_coffeeprice_regression[(df_coffeeprice_regression['100g_USD'] >= lower_bound) & 
-                                                          (df_coffeeprice_regression['100g_USD'] <= upper_bound)]
-
-    # Encoding Categorical Variables
-    le_roast = LabelEncoder()
-    le_origin_2 = LabelEncoder()
-    le_location = LabelEncoder()
-
-    df_coffeeprice_regression['roast'] = le_roast.fit_transform(df_coffeeprice_regression['roast'])
-    df_coffeeprice_regression['origin_2_processed'] = le_origin_2.fit_transform(df_coffeeprice_regression['origin_2_processed'])
-    df_coffeeprice_regression['loc_processed'] = le_location.fit_transform(df_coffeeprice_regression['loc_processed'])
-
-    # Define features (X) and target (y)
-    X = df_coffeeprice_regression[['roast', 'origin_2_processed', 'loc_processed']]
-    y = df_coffeeprice_regression['100g_USD']
-
-    # No need for SMOTE since this is a regression problem
-    # Split the data into training (70%) and testing (30%) sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
-    # Random Forest Regressor
-    rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
-    rf_model.fit(X_train, y_train)
-    rf_pred = rf_model.predict(X_test)
-    rf_mse = mean_squared_error(y_test, rf_pred)
-    st.write(f"Random Forest - Mean Squared Error: {rf_mse:.2f}")
-
-    # Decision Tree Regressor
-    dt_model = DecisionTreeRegressor(random_state=42)
-    dt_model.fit(X_train, y_train)
-    dt_pred = dt_model.predict(X_test)
-    dt_mse = mean_squared_error(y_test, dt_pred)
-    st.write(f"Decision Tree - Mean Squared Error: {dt_mse:.2f}")
-
-    # Visualize Actual vs Predicted Prices for Random Forest
-    st.write("### Actual vs Predicted Prices (Random Forest)")
-    fig, ax = plt.subplots()
-    ax.scatter(y_test, rf_pred, label='Random Forest', alpha=0.7)
-    ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)
-    ax.set_xlabel('Actual Price (USD)')
-    ax.set_ylabel('Predicted Price (USD)')
-    ax.legend()
-    st.pyplot(fig)
-
-    # Feature Importance Analysis for Random Forest
-    st.write("### Feature Importance (Random Forest)")
-    rf_importance = rf_model.feature_importances_
-    for i, score in enumerate(rf_importance):
-        st.write(f"Feature: {X.columns[i]}, Score: {score:.4f}")
-    
     if 'df' not in st.session_state:
         st.error("Please process the data in the Data Cleaning page first")
         st.stop()
@@ -588,11 +519,85 @@ elif st.session_state.page_selection == "coffee_price_prediction":
             comparison_fig = px.scatter(train_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Comparison of User Input with Training Data')
             comparison_fig.add_scatter(x=user_df['Price per 100g (Scaled)'], y=user_df['Rating (Scaled)'], mode='markers', marker=dict(size=10, color='red'), name='User  Input', showlegend=True)
             st.plotly_chart(comparison_fig)  # Use Streamlit to display the plot
+
+###################################################################
+# Coffee Price Prediction Page ################################################
+elif st.session_state.page_selection == "coffee_price_prediction":
+    st.header("☕ Coffee Price Prediction Model")
+
+    # Create a copy of the original DataFrame with a unique name for regression
+    df_coffeeprice_regression = st.session_state.df.copy()  # Use cleaned DataFrame stored in session state
+
+    # Select relevant columns and rename them if pre-processed (already cleaned)
+    df_coffeeprice_regression = df_coffeeprice_regression[['roast', 'origin_2', 'loc_country', '100g_USD']]
+    df_coffeeprice_regression = df_coffeeprice_regression.rename(columns={
+        'origin_2': 'origin_2_processed',
+        'loc_country': 'loc_processed'
+    })
+
+    # Drop rows with missing values if any
+    df_coffeeprice_regression = df_coffeeprice_regression.dropna()
+
+    # Handling Outliers using IQR for '100g_USD'
+    Q1 = df_coffeeprice_regression['100g_USD'].quantile(0.25)
+    Q3 = df_coffeeprice_regression['100g_USD'].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    df_coffeeprice_regression = df_coffeeprice_regression[(df_coffeeprice_regression['100g_USD'] >= lower_bound) & 
+                                                          (df_coffeeprice_regression['100g_USD'] <= upper_bound)]
+
+    # Encoding Categorical Variables
+    le_roast = LabelEncoder()
+    le_origin_2 = LabelEncoder()
+    le_location = LabelEncoder()
+
+    df_coffeeprice_regression['roast'] = le_roast.fit_transform(df_coffeeprice_regression['roast'])
+    df_coffeeprice_regression['origin_2_processed'] = le_origin_2.fit_transform(df_coffeeprice_regression['origin_2_processed'])
+    df_coffeeprice_regression['loc_processed'] = le_location.fit_transform(df_coffeeprice_regression['loc_processed'])
+
+    # Define features (X) and target (y)
+    X = df_coffeeprice_regression[['roast', 'origin_2_processed', 'loc_processed']]
+    y = df_coffeeprice_regression['100g_USD']
+
+    # No need for SMOTE since this is a regression problem
+    # Split the data into training (70%) and testing (30%) sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    # Random Forest Regressor
+    rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+    rf_model.fit(X_train, y_train)
+    rf_pred = rf_model.predict(X_test)
+    rf_mse = mean_squared_error(y_test, rf_pred)
+    st.write(f"Random Forest - Mean Squared Error: {rf_mse:.2f}")
+
+    # Decision Tree Regressor
+    dt_model = DecisionTreeRegressor(random_state=42)
+    dt_model.fit(X_train, y_train)
+    dt_pred = dt_model.predict(X_test)
+    dt_mse = mean_squared_error(y_test, dt_pred)
+    st.write(f"Decision Tree - Mean Squared Error: {dt_mse:.2f}")
+
+    # Visualize Actual vs Predicted Prices for Random Forest
+    st.write("### Actual vs Predicted Prices (Random Forest)")
+    fig, ax = plt.subplots()
+    ax.scatter(y_test, rf_pred, label='Random Forest', alpha=0.7)
+    ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)
+    ax.set_xlabel('Actual Price (USD)')
+    ax.set_ylabel('Predicted Price (USD)')
+    ax.legend()
+    st.pyplot(fig)
+
+    # Feature Importance Analysis for Random Forest
+    st.write("### Feature Importance (Random Forest)")
+    rf_importance = rf_model.feature_importances_
+    for i, score in enumerate(rf_importance):
+        st.write(f"Feature: {X.columns[i]}, Score: {score:.4f}")
                 
 ###################################################################
 # Description to Rating Page ################################################
-elif st.session_state.page_selection == "description_to_rating":
-    st.header("📊 Description to Rating")
+elif st.session_state.page_selection == "sentiment_model":
+    st.header("📊 Sentiment Intensity Analysis Model")
 
     # Initialize SentimentIntensityAnalyzer
     sia = SentimentIntensityAnalyzer()
@@ -610,9 +615,9 @@ elif st.session_state.page_selection == "description_to_rating":
     df = st.session_state.df  # Use cleaned DataFrame stored in session state
 
     # Add tabs for different features
-    tab1, tab2 = st.tabs(["Describe to Rate The Coffee", "Model Insights"])
+    tab1, tab2 = st.tabs(["Machine Learning", "Describe to Rate The Coffee"])
 
-    with tab1:
+    with tab2:
         # Check if sentiment score columns exist; if not, create them
         if not all(col in df.columns for col in ['sentiment_score_1', 'sentiment_score_2', 'sentiment_score_3']):
             # Create sentiment score columns based on existing descriptions
@@ -669,7 +674,7 @@ elif st.session_state.page_selection == "description_to_rating":
             st.write(f"Description 3 Sentiment Score: {sentiment_score_3:.2f}")
             st.success(f"Predicted Rating for the provided descriptions: {predicted_rating[0]:.2f}")
 
-    with tab2:
+    with tab1:
         st.subheader("Feature Importance Analysis")
         
         # Calculate the average sentiment score for each coffee description (mean of the 3 sentiment scores)
@@ -757,8 +762,8 @@ elif st.session_state.page_selection == "description_to_rating":
 
 ###################################################################
 # Prediction Page #################################################
-elif st.session_state.page_selection == "prediction":
-    st.header("☕ Coffee Recommendation System")
+elif st.session_state.page_selection == "coffee_rec_model":
+    st.header("☕ Coffee Recommendation Model")
     
     # Check if the cleaned DataFrame exists in session state
     if 'df' not in st.session_state:
@@ -768,9 +773,9 @@ elif st.session_state.page_selection == "prediction":
     df = st.session_state.df
     
     # Add tabs for different features
-    tab1, tab2 = st.tabs(["Get Recommendations", "Model Insights"])
+    tab1, tab2 = st.tabs(["Machine Learning", "Get Recommendations"])
     
-    with tab1:
+    with tab2:
         # Create sidebar for filters
         with st.sidebar:
             st.subheader("Filter Options")
@@ -872,7 +877,7 @@ elif st.session_state.page_selection == "prediction":
                             unsafe_allow_html=True
                         )
 
-    with tab2:
+    with tab1:
         st.subheader("Feature Importance Analysis")
         
         # Calculate and display feature importance
