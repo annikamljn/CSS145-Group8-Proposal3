@@ -37,6 +37,8 @@ from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from sklearn.tree import DecisionTreeRegressor
+from scipy.stats import gaussian_kde
+from io import BytesIO
 
 # Download NLTK resources
 nltk.download('vader_lexicon')
@@ -86,18 +88,18 @@ with st.sidebar:
 
     if st.button("EDA", use_container_width=True, on_click=set_page_selection, args=('eda',)):
         st.session_state.page_selection = "eda"
-
-    if st.button("Sentiment Intensity Analysis Model", use_container_width=True, on_click=set_page_selection, args=('sentiment_model',)):
-        st.session_state.page_selection = "sentiment_model"
         
     if st.button("Coffee Price Prediction Model", use_container_width=True, on_click=set_page_selection, args=('coffee_price_prediction',)):
         st.session_state.page_selection = "coffee_price_prediction"
-    
-    if st.button("Coffee Clustering Model", use_container_width=True, on_click=set_page_selection, args=('clustering_analysis',)):
-        st.session_state.page_selection = "clustering_analysis"
-    
+
+    if st.button("Sentiment Intensity Analysis Model", use_container_width=True, on_click=set_page_selection, args=('sentiment_model',)):
+        st.session_state.page_selection = "sentiment_model"
+
     if st.button("Coffee Recommendation Model", use_container_width=True, on_click=set_page_selection, args=('prediction',)): 
         st.session_state.page_selection = "coffee_rec_model"
+
+    if st.button("Coffee Clustering Model", use_container_width=True, on_click=set_page_selection, args=('clustering_analysis',)):
+        st.session_state.page_selection = "clustering_analysis"
 
     if st.button("Conclusion", use_container_width=True, on_click=set_page_selection, args=('conclusion',)):
         st.session_state.page_selection = "conclusion"
@@ -115,6 +117,66 @@ df_initial = dataset
 
 #######################
 
+# Functions
+
+def create_pie_chart(df, names_col, values_col, width, height, key, title):
+    # Generate a pie chart
+    fig = px.pie(
+        df,
+        names=names_col,
+        values=values_col,
+        title=title
+    )
+    # Adjust the layout for the pie chart
+    fig.update_layout(
+        width=width,  
+        height=height,  
+        showlegend=True
+    )
+    # Display the pie chart in Streamlit
+    st.plotly_chart(fig, use_container_width=True, key=f"pie_chart_{key}")
+
+def plot_price_distribution(df):
+    # Create a histogram using Plotly
+    fig = go.Figure()
+
+    # Add histogram bars with outlines
+    fig.add_trace(go.Histogram(
+        x=df['100g_USD'],
+        nbinsx=20,
+        marker=dict(line=dict(color='black', width=1)),  # Outline color and width
+        name='Price Distribution'
+    ))
+
+    # Calculate the KDE for the trendline
+    kde = gaussian_kde(df['100g_USD'])
+    x_range = np.linspace(df['100g_USD'].min(), df['100g_USD'].max(), 100)
+    kde_values = kde(x_range)
+
+    # Scale the KDE to match the histogram frequency
+    bin_width = (df['100g_USD'].max() - df['100g_USD'].min()) / 20
+    kde_scaled = kde_values * len(df) * bin_width
+
+    # Add the KDE line to the histogram
+    fig.add_trace(go.Scatter(
+        x=x_range,
+        y=kde_scaled,
+        mode='lines',
+        name='Trendline',
+        line=dict(color='blue', width=2)
+    ))
+
+    # Update layout for better visuals
+    fig.update_layout(
+        title='Distribution of Price per 100g',
+        xaxis_title='Price per 100g (USD)',
+        yaxis_title='Frequency'
+    )
+
+    return fig
+
+#######################
+
 # Pages
 
 ###################################################################
@@ -128,11 +190,11 @@ if st.session_state.page_selection == "about":
     #### Pages
 
     1. `Dataset` – A preview of the Coffee Reviews Dataset, the dataset used for this project. 
-    2. `EDA` – An Exploratory Data Analysis that focuses on data distribution and correlation of variables tailored for the models we aim to develop. These are visualized through pie charts, word clouds, histograms, and bar charts.
+    2. `Data Pre-processing` – Processing the data by removing nulls, duplicates, and outliers, tokenizing text data, and encoding object columns.
     3. `EDA` – An Exploratory Data Analysis that focuses on data distribution and correlation of variables tailored for the models we aim to develop. These are visualized through pie charts, word clouds, histograms, and bar charts.
     4. `Coffee Price Prediction Model` – A model that uses Random Forest Regressor to predict coffee prices based on categorical data.
-    5. `Sentiment Intensity Analysis Model` – A model that uses [TBA] to predict ratings based on coffee descriptions.
-    6. `Coffee Recommendation Model` – A model that uses [TBA] to curate coffee recommendations based on similar descriptions.
+    5. `Sentiment Intensity Analysis Model` – A model that uses Random Forest Regressor to predict ratings based on coffee descriptions.
+    6. `Coffee Recommendation Model` – A model that uses TF-IDF vectorizer and cosine similarity to curate coffee recommendations based on similar descriptions.
     7. `Coffee Clustering Model` – A model that uses K-means to group coffees based on price and rating patterns.
     8. `Conclusion` – Contains a summary of the processes and insights gained from the previous steps. 
     """)
@@ -344,23 +406,6 @@ elif st.session_state.page_selection == "eda":
 
         col = st.columns((2, 3, 3), gap='medium')
 
-        def create_pie_chart(df, names_col, values_col, width, height, key, title):
-            # Generate a pie chart
-            fig = px.pie(
-                df,
-                names=names_col,
-                values=values_col,
-                title=title
-            )
-            # Adjust the layout for the pie chart
-            fig.update_layout(
-                width=width,  
-                height=height,  
-                showlegend=True
-            )
-            # Display the pie chart in Streamlit
-            st.plotly_chart(fig, use_container_width=True, key=f"pie_chart_{key}")
-
         with col[0]:
             with st.expander('Legend', expanded=True):
                 st.write('''
@@ -368,6 +413,7 @@ elif st.session_state.page_selection == "eda":
                     - :orange[**Pie Chart**]: Distribution of coffee types, roasters, roaster locations, and bean origins.
                     - :orange[**Word Cloud**]: Word frequencies in descriptive reviews.
                     - :orange[**Histogram**]: Distribution of coffee prices and ratings.
+                    - :orange[**Bar Graph and Box Plot**]: Correlation analyses between categorical and numerical data.
                     ''')
 
             ##### Roast types chart #####
@@ -415,13 +461,364 @@ elif st.session_state.page_selection == "eda":
             origin_counts_top_2.columns = ['Origin', 'Count']
 
             create_pie_chart(origin_counts_top_2, 'Origin', 'Count', width=400, height=400, key='bean_origins_2', title=f'Distribution of Top {top_n} Bean Origins in "origin_2"')
+        
+        st.subheader("Insights", divider=True)
+        st.markdown("#### Data Distribution Analysis")
+
+        st.markdown("##### ➡️ Categorical Data")
+        create_pie_chart(roast_counts, 'Roast', 'Count', width=400, height=400, key='coffee_roast', title='Distribution of Roast Types')
+        st.markdown("Based on the graph, we can infer that **Medium-Light roasts** are the **most prominent** types, spanning almost three-fourths (72.8%) of the dataset. Around **one-fourth** of the dataset consists of nearly equal distributions of **Light and Medium roasts**. **Medium-Dark and Dark** have the **least** number of instances, encompassing only less than 2% of the dataset when combined. It might be best to balance the dataset to lessen the bias towards Medium-Light coffees in model training.")
+
+        create_pie_chart(roaster_counts_top, 'Roaster', 'Count', width=400, height=400, key='top_roasters', title='Distribution of Top 20 Coffee Roasters')
+        st.markdown("Due to the numerous unique roaster names within the dataset, the graph was adjusted to highlight the top 20 most prominent roasters while grouping the rest as “others.” The **top 20 roasters** span **less than half** of the entire dataset, as other roasters below the top 20 take up 57.7%. **JBC Coffee Roasters** and **Kakalove Café** have the **most occurrences**, encompassing **8.7%** and **7.2%** of the dataset respectively.")
+
+        create_pie_chart(loc_counts_df, 'Location', 'Count', width=400, height=400, key='roaster_locations', title='Distribution of Roaster Locations')
+        st.markdown("The **majority** of the roasters in the dataset are based in the **United States**, spanning **66%**. The **second most prominent** roaster location is **Taiwan**, encompassing **27.1%** of the dataset. It is apparent from this graph that the data for roaster locations are largely imbalanced, so it is important to take note of this when training models that involve the use of this data column.")
+
+        create_pie_chart(origin_counts_top, 'Origin', 'Count', width=400, height=400, key='bean_origins', title=f'Distribution of Top {top_n} Bean Origins in "origin_1"')
+        st.markdown("Similar to the circumstances with the roasters, there are too many unique values for “origin_1” to coherently present the graph, thus it is presented with only the top 20 bean origins. **The top 20 origins** for this column only encompass less than half of the entire dataset, summing up to **only 38.7%**. The **most recurring** origins are **Guji Zone, Yirgacheffe Growing Region, Ethiopia, and Nyeri Growing Region**, which take up approximately **3-7% each**. The rest of the top regions only span around 2% or less each.")
+
+        create_pie_chart(origin_counts_top_2, 'Origin', 'Count', width=400, height=400, key='bean_origins_2', title=f'Distribution of Top {top_n} Bean Origins in "origin_2"')
+        st.markdown("For the “origin_2” column, the **top 20 bean origins** comprise **61.6%** of the entire dataset. The **most recurring** origins are **Southern Ethiopia, Colombia, Oromia Region, Guatemala, and South-Central Kenya**, **each encompassing around 6-7%** of the entire dataset. The rest of the top regions only appear to take up 4% or less of the dataset.")
+
+        #########################################
+        #########################################
+        st.markdown("##### ➡️ Numerical Data")
+        ##### Price Distribution #####
+        price_distribution_fig = plot_price_distribution(df)
+        st.plotly_chart(price_distribution_fig)
+        st.markdown("The most **frequent found price range** in the dataset seems to be around **5 to 6 USD per 100 grams** while there are nearly **400 products** within it. Few of the websites offer products for a low price of almost **0 to 2 USD**, and few of the high prices are **around 14 USD**.")
+
+        ##### Rating Distribution #####
+        fig = go.Figure()
+
+        # Add histogram bars with outlines
+        fig.add_trace(go.Histogram(
+            x=df['rating'],
+            xbins=dict(start=df['rating'].min(), end=df['rating'].max() + 1, size=1), 
+            marker=dict(line=dict(color='black', width=1)),  
+            name='Rating Distribution'
+        ))
+
+        # Update layout for better visuals
+        fig.update_layout(
+            title='Distribution of Ratings',
+            xaxis_title='Rating',
+            yaxis_title='Frequency',
+        )
+
+        # Display the plot in Streamlit
+        st.plotly_chart(fig)
+        st.markdown("The **most common rating** of the coffees in this dataset can be between **93 to 94**. The lowest ratings go around **89 to 90** and the highest ratings insulate around **97 and 98**.")
+
+        st.markdown("##### ➡️ Text Data")
+
+        #### Word Distribution #####
+        all_tokens = df['desc_1_processed'].sum() + df['desc_2_processed'].sum() + df['desc_3_processed'].sum()
+
+        # Create a space-separated string for WordCloud
+        text_for_wordcloud = ' '.join(all_tokens)
+
+        # Generate the WordCloud
+        wordcloud = WordCloud(
+            width=600,  
+            height=400,  
+            background_color='white',
+            max_words=200,
+            colormap='viridis',
+            stopwords=None  # We've already removed stopwords during preprocessing
+        ).generate(text_for_wordcloud)
+
+        # Create a BytesIO buffer to hold the image
+        buffer = BytesIO()
+        plt.figure(figsize=(6, 4))  # Adjust the figure size
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis('off')
+
+        # Save the figure to the buffer
+        plt.savefig(buffer, format='png', bbox_inches='tight', pad_inches=0)  # Remove extra padding
+        buffer.seek(0)  # Move to the beginning of the buffer
+
+        # Display the Word Cloud in Streamlit
+        st.image(buffer, caption='Word Cloud from Processed Descriptions', use_column_width=False, width=600)  # Set a specific width
+
+        plt.close()
+        st.markdown("The word cloud presents a summary of the most common words from columns “desc_1”, “desc_2”, and “desc_3” combined. The most prominent words across all the reviews are **“aroma,” “cup,” “variety,”** and **“arabica,”** followed by **“call,” “information,” “dark,” “chocolate,”** and lastly, **“processed.”** Observing the graph, the majority of the words that appear are mostly **objective** rather than subjective. The dataset owner indicates that these columns are reviews, however, it may appear that these lean more toward being descriptive text than sentiments.")
+
+        st.divider()
+
+        #########################################
+        #########################################
+        st.markdown("#### Correlation Analysis")
+
+        #########################################
+        #### Price Prediction Analysis EDA ###
+        st.markdown("##### ➡️ For the Price Prediction Model")
+        
+        #### Price by Type ####
+        fig = px.box(df, x='roast', y='100g_USD', title='Price per 100g by Roast Level',
+                    labels={'roast': 'Roast', '100g_USD': 'Price per 100g (USD)'})
+
+        # Update layout for better appearance
+        fig.update_layout(xaxis_title='Roast', yaxis_title='Price per 100g (USD)', xaxis_tickangle=-45)
+
+        # Display the plot in Streamlit
+        st.plotly_chart(fig, use_container_width=False)  
+        st.markdown("A look at the graph also reveals that **Medium-Dark roast** coffee's prices of the different types are spread out more compared to the others; prices range between **4 USD and 8.5 USD**. **Medium roasts** are the smallest part of the general price range as it is usually priced at **4.5 to 6 USD**.")
+
+        # Price by Type
+        fig = px.box(df, x='roast', y='100g_USD', title='Price per 100g by Roast Level',
+                    labels={'roast': 'Roast', '100g_USD': 'Price per 100g (USD)'})
+
+        # Update layout for better appearance
+        fig.update_layout(xaxis_title='Roast', yaxis_title='Price per 100g (USD)', xaxis_tickangle=-45)
+
+        # Display the Plotly chart
+        st.plotly_chart(fig, use_container_width=True)  # Use container width for the Plotly chart
+
+        st.markdown("A look at the graph also reveals that **Medium-Dark roast** coffee's prices of the different types are spread out more compared to the others; prices range between **4 USD and 8.5 USD**. **Medium roasts** are the smallest part of the general price range as it is usually priced at **4.5 to 6 USD**.")
+
+        #### Price by Rating and Type ####
+        st.markdown("**Average Price per 100g by Rating Bins and Roast Type**")
+        # Define bin edges
+        bin_edges = [89, 91, 93, 95, 97]
+
+        # Create bins based on the custom edges
+        df['rating_bins'] = pd.cut(df['rating'], bins=bin_edges)
+
+        # Convert the 'rating_bins' to string for better labeling
+        df['rating_bins'] = df['rating_bins'].astype(str)
+
+        # Calculate the average price per bin
+        avg_price_per_bin = df.groupby(['rating_bins', 'roast'])['100g_USD'].mean().reset_index()
+
+        # Create columns for the second graph
+        col1, col2 = st.columns(2)
+
+        # Plotting using Matplotlib and Seaborn with fixed width
+        with col1:
+            plt.figure(figsize=(8, 5))  # Set fixed width and height
+            sns.barplot(data=avg_price_per_bin, x='rating_bins', y='100g_USD', hue='roast', palette='viridis')
+            plt.title('Average Price per 100g by Rating Bins and Roast Type')
+            plt.xlabel('Rating Bins')
+            plt.ylabel('Average Price per 100g (USD)')
+            plt.xticks(rotation=45)
+            plt.legend(title='Roast', bbox_to_anchor=(1.05, 1), loc='upper left')
+            plt.tight_layout()
+
+            # Display the plot in Streamlit
+            st.pyplot(plt)
+
+        with col2:
+            st.markdown("The graph provided shows us that, generally, coffees with **higher ratings** tend to have a **higher average price**. Dark, Light, Medium, and Medium-dark coffees tend to increase in average price as their ratings increase. On the other hand, across all rating ranges, **Medium-light coffees** tend to maintain the **same price range**.")
+
+        #### Price by Country ####
+        # Calculate the average price per country
+        avg_price_by_country = df.groupby('loc_country')['100g_USD'].mean().reset_index()
+
+        # Sort values by average price
+        avg_price_by_country = avg_price_by_country.sort_values(by='100g_USD')
+
+        # Plotting using Plotly
+        fig = px.bar(avg_price_by_country, 
+                    x='100g_USD', 
+                    y='loc_country', 
+                    orientation='h', 
+                    title='Average Price per 100g by Roaster Country',
+                    labels={'100g_USD': 'Average Price per 100g (USD)', 'loc_country': 'Country'},
+                    color='100g_USD',
+                    color_continuous_scale='Teal')
+
+        # Update layout for better appearance
+        fig.update_layout(xaxis_title='Average Price per 100g (USD)', yaxis_title='Country')
+
+        # Display the plot in Streamlit
+        st.plotly_chart(fig)
+        st.markdown("The countries with the **highest average price** per 100 grams of coffee are **Honduras, Hawai’i, Japan, Hong Kong, and New Taiwan**, with an estimated 10 to 12 USD range. Countries with the **cheapest coffee** prices are **Peru, Uganda, Guatemala, China, and Belgium**, with prices averaging 4 USD or less. Other countries present in the dataset price their coffees around 5 to 8 USD.")
+
+        #### Price by origin ####
+        # Set the number of top origins to display
+        top_n = 10
+
+        # Identify the top N origins in 'origin_2'
+        top_origins = df['origin_2'].value_counts().nlargest(top_n).index
+
+        # Create a new column where non-top origins are labeled as 'Others'
+        df['origin_grouped'] = df['origin_2'].apply(lambda x: x if x in top_origins else 'Others')
+
+        # Create a box plot for price by grouped origin using Plotly
+        fig = px.box(df, 
+                    x='origin_grouped', 
+                    y='100g_USD', 
+                    category_orders={'origin_grouped': top_origins.tolist() + ['Others']},
+                    title=f'Price per 100g by Top {top_n} Bean Origins (origin_2), Others Grouped',
+                    labels={'origin_grouped': 'Individual Origin', '100g_USD': 'Price per 100g (USD)'})
+
+        # Update layout for better appearance
+        fig.update_layout(xaxis_title='Individual Origin', yaxis_title='Price per 100g (USD)', xaxis_tickangle=-45)
+
+        # Display the plot in Streamlit
+        st.plotly_chart(fig)
+        st.markdown("Present in the graph are average prices with respect to the top ten most common bean origins from the “origin_2” column. Among these, **Colombia** generally has the **most expensive** coffee prices per 100 grams, as well as the **widest price range**, with the majority ranging from **5 to 9 USD**. **Guatemala, Ethiopia, and Gedeo Zone** appear to have the **cheapest coffees**, which range from **5 to 6 USD**.")
+
+        #########################################
+        #### Sentiment Intensity Analysis EDA ###
+        st.divider()
+        st.markdown("##### ➡️ For the Sentiment Intensity Analysis Model")
+        # Combine the description columns into a single processed text column
+        df['combined_desc'] = (
+            df['desc_1_processed'].fillna('').apply(' '.join) + ' ' +
+            df['desc_2_processed'].fillna('').apply(' '.join) + ' ' +
+            df['desc_3_processed'].fillna('').apply(' '.join)
+        )
+
+        # Function to create a word cloud based on a range of ratings
+        def create_wordcloud(data, rating_min, rating_max):
+            # Filter the dataset based on the rating range
+            filtered_data = data[(data['rating'] >= rating_min) & (data['rating'] <= rating_max)]
             
+            # Combine the text data from the 'combined_desc' column
+            text = ' '.join(filtered_data['combined_desc'].dropna())
+
+            # Generate the word cloud
+            wordcloud = WordCloud(
+                width=800,
+                height=400,
+                background_color='white',
+                collocations=False,
+                stopwords=None
+            ).generate(text)
+
+            return wordcloud
+
+        # Create columns for displaying word clouds
+        col1, col2, col3 = st.columns(3)
+
+        # Descriptions for each quartile
+        quartile_1_desc = """
+        **Quartile 1 (25%)**
+        Descriptions in this range focus on broad qualities like **"mouthfeel," "sweet," "chocolate," “aroma,” and "finish,"** suggesting that these coffees are enjoyable but lack detailed complexity.
+        """
+
+        quartile_2_desc = """
+        **Quartile 2 (50%)**
+        As ratings increase, words such as **"fruit"** and **“note”** appear more frequently, indicating that higher-rated coffees are associated with more specific flavor profiles.
+        """
+
+        quartile_3_desc = """
+        **Quartile 3 (75%)**
+        Terms like **"aroma," "finish," and "fruit"** appear at the highest scores, indicating a greater attention to the complexities of flavor and aftertaste.
+        """
+
+        # Display word cloud for Quartile 1 in the first column
+        with col1:
+            wordcloud_q1 = create_wordcloud(df, rating_min=89, rating_max=92)
+            plt.figure(figsize=(6, 4))
+            plt.imshow(wordcloud_q1, interpolation='bilinear')
+            plt.axis('off')
+            st.pyplot(plt)
+            st.write(quartile_1_desc)
+
+        # Display word cloud for Quartile 2 in the second column
+        with col2:
+            wordcloud_q2 = create_wordcloud(df, rating_min=93, rating_max=93)
+            plt.figure(figsize=(6, 4))
+            plt.imshow(wordcloud_q2, interpolation='bilinear')
+            plt.axis('off')
+            st.pyplot(plt)
+            st.write(quartile_2_desc)
+
+        # Display word cloud for Quartile 3 in the third column
+        with col3:
+            wordcloud_q3 = create_wordcloud(df, rating_min=94, rating_max=97)
+            plt.figure(figsize=(6, 4))
+            plt.imshow(wordcloud_q3, interpolation='bilinear')
+            plt.axis('off')
+            st.pyplot(plt)
+            st.write(quartile_3_desc)
+
+        #########################################
+        #### Recommendation Analysis EDA ###
+        st.divider()
+        st.markdown("##### ➡️ For the Coffee Recommendation Model")
+        def preprocess_text(text):
+            # Remove punctuation, convert to lowercase, and tokenize
+            text = re.sub(r'[^\w\s]', '', text)
+            text = text.lower()
+            return text
+
+        # Apply preprocessing to the 'name' column
+        df['processed_name'] = df['name'].apply(preprocess_text)
+
+        # Combine the processed description columns into a single text
+        df['combined_desc'] = (
+            df['desc_1_processed'].fillna('').apply(' '.join) + ' ' +
+            df['desc_2_processed'].fillna('').apply(' '.join) + ' ' +
+            df['desc_3_processed'].fillna('').apply(' '.join)
+        )
+
+        # Vectorize the 'processed_name' column
+        vectorizer_name = CountVectorizer(max_features=100)
+        X_name = vectorizer_name.fit_transform(df['processed_name']).toarray()
+
+        # Vectorize the 'combined_desc' column
+        vectorizer_desc = CountVectorizer(max_features=100)
+        X_desc = vectorizer_desc.fit_transform(df['combined_desc']).toarray()
+
+        # Convert to DataFrames for easier manipulation
+        df_name_words = pd.DataFrame(X_name, columns=vectorizer_name.get_feature_names_out())
+        df_desc_words = pd.DataFrame(X_desc, columns=vectorizer_desc.get_feature_names_out())
+
+        # Align the features for correlation (intersect columns to avoid mismatch)
+        common_words = list(set(df_name_words.columns) & set(df_desc_words.columns))
+
+        # Use the list of common words to filter the DataFrames
+        df_name_words = df_name_words[common_words]
+        df_desc_words = df_desc_words[common_words]
+
+        # Calculate correlation
+        correlation_matrix = df_name_words.corrwith(df_desc_words, axis=0)
+
+        # Create a DataFrame of correlations
+        correlation_df = correlation_matrix.reset_index()
+        correlation_df.columns = ['Word', 'Correlation']
+
+        # Get the top 20 most correlated words
+        top_correlated = correlation_df.sort_values(by='Correlation', key=abs, ascending=False).head(20)
+
+        # Plotting with Plotly
+        fig = px.bar(top_correlated, x='Correlation', y='Word', 
+                    title='Top Correlations Between Words in "name" and "combined_desc"',
+                    labels={'Correlation': 'Correlation', 'Word': 'Word'},
+                    orientation='h')
+        st.plotly_chart(fig)
+        st.markdown("The graph above depicts the degree of correlation between common words found in coffee names and combined descriptions. The words with the highest degree of correlation are **“kenya,” “espresso,” “ethiopia,” “blend,” “natural,”** and **“honey.”** with a correlation level around **0.6 or higher.** This represents how coffee names could be associated with their given description, which can help in identifying similarities for a coffee recommendation model.")
+
+        #########################################
+        #### Recommendation Analysis EDA ###
+        st.divider()
+        st.markdown("##### ➡️ For the Coffee Clustering Model")
+        # Box plot for price distribution across ratings using Plotly
+        fig = px.box(df, x='rating', y='100g_USD', title='100g Price Distribution across Ratings (Box Plot)',
+                    labels={'rating': 'Rating', '100g_USD': '100g Price (USD)'})
+
+        # Display the plot in Streamlit
+        st.plotly_chart(fig)
+
+        # Add text explanation
+        st.write("""
+        Presented is another graph that compares coffee ratings and prices, but this time with individual x-ticks per rating. 
+        As observed in this graph and the one earlier, the **prices** of coffees are generally **higher** when they have a **higher rating**. 
+        Coffees **rated 95-96** have the **widest price ranges** in the dataset, and coffees **rated 97** have the **smallest price range**. 
+        Overall, coffees **rated 94-96** tend to be the **most expensive**, while coffees **rated 89** are the **cheapest**. 
+        The positive correlation between the price and rating can be utilized to create a clustering algorithm to group the coffees based on these characteristics.
+        """)
 
     else:
         st.error("DataFrame not found. Please go to the Data Cleaning page first. (It is required that you scroll to the bottom)")
 
 ###################################################################
-# Machine Learning Page ###########################################
+# Clustering Analysis ###########################################
 elif st.session_state.page_selection == "clustering_analysis":
     st.header("🤖 Coffee Clustering Model")
 
