@@ -793,7 +793,7 @@ elif st.session_state.page_selection == "coffee_rec_model":
             selected_roast = st.selectbox("Roast Type", roast_types)
             
             # Origin filter
-            origins = ['All'] + list(df['origin_1'].unique())
+            origins = ['All'] + list(df['origin_2'].unique())
             selected_origin = st.selectbox("Origin", origins)
 
         # Main content area
@@ -807,7 +807,7 @@ elif st.session_state.page_selection == "coffee_rec_model":
             if selected_roast != 'All':
                 filtered_df = filtered_df[filtered_df['roast'] == selected_roast]
             if selected_origin != 'All':
-                filtered_df = filtered_df[filtered_df['origin_1'] == selected_origin]
+                filtered_df = filtered_df[filtered_df['origin_2'] == selected_origin]
             filtered_df = filtered_df[
                 (filtered_df['100g_USD'] >= price_range[0]) &
                 (filtered_df['100g_USD'] <= price_range[1])
@@ -823,7 +823,7 @@ elif st.session_state.page_selection == "coffee_rec_model":
                 coffee_info = filtered_df[filtered_df['name'] == selected_coffee].iloc[0]
                 st.write("**Selected Coffee Details:**")
                 st.write(f"🫘 Roast: {coffee_info['roast']}")
-                st.write(f"📍 Origin: {coffee_info['origin_1']}")
+                st.write(f"📍 Origin: {coffee_info['origin_2']}")
                 st.write(f"💰 Price: ${coffee_info['100g_USD']:.2f}/100g")
                 st.write(f"⭐ Rating: {coffee_info['rating']}")
 
@@ -870,7 +870,7 @@ elif st.session_state.page_selection == "coffee_rec_model":
                                 <h3>{i}. {coffee['name']}</h3>
                                 <p><strong>Similarity Score:</strong> {score:.2%}</p>
                                 <p>🫘 <strong>Roast:</strong> {coffee['roast']}</p>
-                                <p>📍 <strong>Origin:</strong> {coffee['origin_1']}</p>
+                                <p>📍 <strong>Origin:</strong> {coffee['origin_2']}</p>
                                 <p>💰 <strong>Price:</strong> ${coffee['100g_USD']:.2f}/100g</p>
                             </div>
                             """, 
@@ -925,6 +925,27 @@ elif st.session_state.page_selection == "coffee_rec_model":
         )
         st.plotly_chart(fig, use_container_width=True)
         
+        # Training the TF-IDF model
+        st.header("Training the TF-IDF Model")
+        st.code("""
+        # Create TF-IDF matrix
+        tfidf = TfidfVectorizer(stop_words='english')
+        tfidf_matrix = tfidf.fit_transform(df_reco['combined_desc'])
+        """, language='python')
+        st.write("TF-IDF model trained on `combined_desc` column.")
+
+        
+        st.header("Calculating Cosine Similarity")
+        st.code("""
+        # Calculating cosine similarity
+        cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+        """, language='python')
+        st.write("Cosine similarity matrix calculated.")
+
+        # Evaluation (since it's content-based, we skip traditional accuracy)
+        st.header("Model Evaluation")
+        st.write("In content-based recommendation systems, traditional accuracy metrics aren't typically used. Instead, we can consider relevance feedback, user ratings, or precision-at-k metrics for evaluation.")
+
         # Add explanation
         st.markdown("""
         ### Understanding the Model
@@ -943,7 +964,7 @@ elif st.session_state.page_selection == "coffee_rec_model":
 
 
 
-    # Your content for the PREDICTION page goes here
+
 
 ###################################################################
 # Conclusions Page ################################################
