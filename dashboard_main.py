@@ -95,8 +95,8 @@ with st.sidebar:
     if st.button("Clustering Machine Learning & Prediction", use_container_width=True, on_click=set_page_selection, args=('clustering_analysis',)):
         st.session_state.page_selection = "clustering_analysis"
     
-    if st.button("Prediction", use_container_width=True, on_click=set_page_selection, args=('prediction',)): 
-        st.session_state.page_selection = "prediction"
+    if st.button("Coffee Similarity Recommendation", use_container_width=True, on_click=set_page_selection, args=('coffee_recommendation',)): 
+        st.session_state.page_selection = "coffee_recommendation"
 
     if st.button("Conclusion", use_container_width=True, on_click=set_page_selection, args=('conclusion',)):
         st.session_state.page_selection = "conclusion"
@@ -419,6 +419,99 @@ elif st.session_state.page_selection == "eda":
 # Machine Learning Page ###########################################
 elif st.session_state.page_selection == "clustering_analysis":
     st.header("🤖 Clustering Model Machine Learning & Prediction")
+
+    if 'df' not in st.session_state:
+        st.error("Please process the data in the Data Cleaning page first")
+        st.stop()
+
+    df = st.session_state.df 
+
+    # Dropping unnecessary column and handling missing values
+    df_clustering = df.drop(columns=['origin_1'], errors='ignore')
+    df_clustering = df_clustering[['100g_USD', 'rating']].dropna()
+
+    # Removing outliers based on 99th percentile
+    price_quantile = df_clustering['100g_USD'].quantile(0.99)
+    df_clustering = df_clustering[df_clustering['100g_USD'] < price_quantile]
+
+    # Splitting data into training and test sets
+    train_data, test_data = train_test_split(df_clustering, test_size=0.3, random_state=42)
+
+    # Standardizing the data
+    scaler = StandardScaler()
+    train_scaled = scaler.fit_transform(train_data)
+    test_scaled = scaler.transform(test_data)
+
+    # Finding optimal clusters using the elbow method
+    inertia = []
+    K = range(1, 11)
+    for k in K:
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(train_scaled)
+        inertia.append(kmeans.inertia_)
+
+    # Plotting the Elbow curve using Plotly
+    st.subheader('Elbow Method for Optimal Number of Clusters')
+    elbow_fig = px.line(x=K, y=inertia, markers=True, labels={'x': 'Number of clusters', 'y': 'Inertia'})
+    elbow_fig.update_layout(title='Elbow Method for Optimal Number of Clusters')
+    st.plotly_chart(elbow_fig)  # Use Streamlit to display the plot
+
+    # Choosing the optimal number of clusters (e.g., 3)
+    optimal_clusters = 3
+    kmeans = KMeans(n_clusters=optimal_clusters, random_state=42)
+    train_labels = kmeans.fit_predict(train_scaled)
+
+    # Applying the model to the test data
+    test_labels = kmeans.predict(test_scaled)
+
+    # Adding cluster labels to the dataframes
+    train_data['Cluster'] = train_labels
+    test_data['Cluster'] = test_labels
+
+    # Displaying Silhouette Score
+    sil_score = silhouette_score(test_scaled, test_labels)
+    st.write(f'Silhouette Score for {optimal_clusters} clusters on test data: {sil_score}')
+
+    # Listing some data points from each cluster in the training set
+    for cluster in range(optimal_clusters):
+        st.write(f"\nSample data from Cluster {cluster}:")
+        st.write(train_data[train_data['Cluster'] == cluster].head(5))
+
+    # Visualizing the clusters for training data using Plotly
+    st.subheader('Training Data Clusters Visualization')
+    train_df = pd.DataFrame(train_scaled, columns=['Price per 100g (Scaled)', 'Rating (Scaled)'])
+    train_df['Cluster'] = train_labels
+
+    train_scatter_fig = px.scatter(train_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Training Data Clusters')
+    st.plotly_chart(train_scatter_fig)  # Use Streamlit to display the plot
+
+    # Visualizing the clusters for test data using Plotly
+    st.subheader('Test Data Clusters Visualization')
+    test_df = pd.DataFrame(test_scaled, columns=['Price per 100g (Scaled)', 'Rating (Scaled)'])
+    test_df['Cluster'] = test_labels
+
+    test_scatter_fig = px.scatter(test_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Test Data Clusters')
+    st.plotly_chart(test_scatter_fig)  # Use Streamlit to display the plot
+
+    # User input for new price and rating
+    st.subheader('Input Your Own Values for Prediction')
+    user_price = st.number_input('Enter Price per 100g (USD):', min_value=0.0, format="%.2f", value=9.5)  # Default value set to 10.0
+    user_rating = st.number_input('Enter Rating:', min_value=0.0, max_value=100.0, format="%.1f", value=92.0)  # Default value set to 85.0
+
+    # Predicting the cluster for user input
+    if st.button('Predict Cluster'):
+        user_data = pd.DataFrame({'100g_USD': [user_price], 'rating': [user_rating]})
+        user_scaled = scaler.transform(user_data)
+        user_cluster = kmeans.predict(user_scaled)
+        st.write(f'The predicted cluster for the input values is: {user_cluster[0]}')
+
+        # Visualizing the user input data point
+        user_df = pd.DataFrame({'Price per 100g (Scaled)': user_scaled[0][0], 'Rating (Scaled)': user_scaled[0][1], 'Predicted_Cluster': user_cluster[0]}, index=[0])
+        comparison_fig = px.scatter(train_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Comparison of User Input with Training Data')
+        comparison_fig.add_scatter(x=user_df['Price per 100g (Scaled)'], y=user_df['Rating (Scaled)'], mode='markers', marker=dict(size=10, color='red'), name='User  Input', showlegend=True)
+        st.plotly_chart(comparison_fig)  # Use Streamlit to display the plot
+
+###################################################################
 
     # Coffee Price Prediction Page ################################################
 elif st.session_state.page_selection == "coffee_price_prediction":
@@ -755,8 +848,8 @@ elif st.session_state.page_selection == "description_to_rating":
         """)
 
 ###################################################################
-# Prediction Page #################################################
-elif st.session_state.page_selection == "prediction":
+# Recommendation Page #################################################
+elif st.session_state.page_selection == "coffee_recommendation":
     st.header("☕ Coffee Recommendation System")
     
     # Check if the cleaned DataFrame exists in session state
@@ -787,7 +880,7 @@ elif st.session_state.page_selection == "prediction":
             selected_roast = st.selectbox("Roast Type", roast_types)
             
             # Origin filter
-            origins = ['All'] + list(df['origin_1'].unique())
+            origins = ['All'] + list(df['origin_2'].unique())
             selected_origin = st.selectbox("Origin", origins)
 
         # Main content area
@@ -801,7 +894,7 @@ elif st.session_state.page_selection == "prediction":
             if selected_roast != 'All':
                 filtered_df = filtered_df[filtered_df['roast'] == selected_roast]
             if selected_origin != 'All':
-                filtered_df = filtered_df[filtered_df['origin_1'] == selected_origin]
+                filtered_df = filtered_df[filtered_df['origin_2'] == selected_origin]
             filtered_df = filtered_df[
                 (filtered_df['100g_USD'] >= price_range[0]) &
                 (filtered_df['100g_USD'] <= price_range[1])
@@ -817,7 +910,7 @@ elif st.session_state.page_selection == "prediction":
                 coffee_info = filtered_df[filtered_df['name'] == selected_coffee].iloc[0]
                 st.write("**Selected Coffee Details:**")
                 st.write(f"🫘 Roast: {coffee_info['roast']}")
-                st.write(f"📍 Origin: {coffee_info['origin_1']}")
+                st.write(f"📍 Origin: {coffee_info['origin_2']}")
                 st.write(f"💰 Price: ${coffee_info['100g_USD']:.2f}/100g")
                 st.write(f"⭐ Rating: {coffee_info['rating']}")
 
@@ -864,7 +957,7 @@ elif st.session_state.page_selection == "prediction":
                                 <h3>{i}. {coffee['name']}</h3>
                                 <p><strong>Similarity Score:</strong> {score:.2%}</p>
                                 <p>🫘 <strong>Roast:</strong> {coffee['roast']}</p>
-                                <p>📍 <strong>Origin:</strong> {coffee['origin_1']}</p>
+                                <p>📍 <strong>Origin:</strong> {coffee['origin_2']}</p>
                                 <p>💰 <strong>Price:</strong> ${coffee['100g_USD']:.2f}/100g</p>
                             </div>
                             """, 
@@ -919,6 +1012,27 @@ elif st.session_state.page_selection == "prediction":
         )
         st.plotly_chart(fig, use_container_width=True)
         
+        # Training the TF-IDF model
+        st.header("Training the TF-IDF Model")
+        st.code("""
+        # Create TF-IDF matrix
+        tfidf = TfidfVectorizer(stop_words='english')
+        tfidf_matrix = tfidf.fit_transform(df_reco['combined_desc'])
+        """, language='python')
+        st.write("TF-IDF model trained on `combined_desc` column.")
+
+        
+        st.header("Calculating Cosine Similarity")
+        st.code("""
+        # Calculating cosine similarity
+        cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+        """, language='python')
+        st.write("Cosine similarity matrix calculated.")
+
+        # Evaluation (since it's content-based, we skip traditional accuracy)
+        st.header("Model Evaluation")
+        st.write("In content-based recommendation systems, traditional accuracy metrics aren't typically used. Instead, we can consider relevance feedback, user ratings, or precision-at-k metrics for evaluation.")
+
         # Add explanation
         st.markdown("""
         ### Understanding the Model
@@ -937,7 +1051,7 @@ elif st.session_state.page_selection == "prediction":
 
 
 
-    # Your content for the PREDICTION page goes here
+
 
 ###################################################################
 # Conclusions Page ################################################
