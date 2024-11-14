@@ -118,17 +118,46 @@ df_initial = dataset
 if st.session_state.page_selection == "about":
     st.header("ℹ️ About")
 
-    # Your content for the ABOUT page goes here
+    st.markdown("""
+    This Streamlit dashboard explores a dataset about coffee, which includes information about its name, type, and origins, as well as descriptive reviews. To analyze the data, data preprocessing and Exploratory Data Analysis (EDA) are conducted to gain insights, which are then used to train Machine Learning Models to predict coffee prices, predict ratings based on descriptions, curate coffee recommendations, and group them based on similar characteristics.
+    
+    #### Pages
+
+    1. `Dataset` – A preview of the Coffee Reviews Dataset, the dataset used for this project. 
+    2. `EDA` – An Exploratory Data Analysis that focuses on data distribution and correlation of variables tailored for the models we aim to develop. These are visualized through pie charts, word clouds, histograms, and bar charts.
+
+    TBA
+
+    3. `Conclusion` – Contains a summary of the processes and insights gained from the previous steps. 
+    """)
 
 ###################################################################
 # Dataset Page ####################################################
 elif st.session_state.page_selection == "dataset":
     st.header("📊 Dataset")
+    
+    st.write("The dataset by `@schmoyote` contains information about various coffee blends, their origins, roasters, and ratings. More specifically, the dataset displays details such as the name of the blend, its origins, the company that produced it, its price, and descriptive reviews. This dataset would be an invaluable tool to create a framework for predicting trends in coffee preferences, roaster locations, and blend ratings.")
+    st.write("Additionally, this could help businesses improve their coffee selections on what can be altered and added to make their customers’ experience better and feel more personalized. Thanks to machine learning models, and data analysis this dataset will provide much more opportunities not only to coffee organizations but to their consumers as well.")
 
-    st.write("Coffee Reviews Dataset by `@schmoyote`")
-    st.write("")
+    st.markdown("**Content**")
+    st.write("The dataset contains a total of 2095 rows containing unique entries of coffee and 12 columns, containing the following attributes: coffee name, roaster name, roast type, roaster location, bean origins, coffee price, coffee rating, review date, and coffee descriptions.")
 
-    # Your content for your DATASET page goes here
+    st.markdown("`Link: ` https://www.kaggle.com/datasets/schmoyote/coffee-reviews-dataset")
+
+    st.subheader("Displaying the dataset as a data frame")
+    st.write(df_initial)
+    st.subheader("Displaying the descriptive statistics")
+    st.write(df_initial.describe())
+
+    st.markdown("""
+    The dataset only contains two numerical columns, namely `100g_USD` (price) and `rating`. Running the code df.describe() reveals that, for the price column, the standard deviation is 11.4, which means that the prices throughout the dataset are widely spread out. On the other hand, the rating’s standard deviation is 1.56, which means that the values are also spread out, but significantly less compared to the price. The mean of the dataset’s prices is approximately 9.32 USD, while the rating’s mean is around 9.11 out of 100. 
+    
+    The minimum value for the price is 0.12 USD, while the maximum value is 132.28. This is a significant jump in value, which may be caused by factors such as roaster location or bean origins.
+
+    The minimum value for rating is 84, while the maximum value is 98. This suggests that the dataset’s contents primarily contain highly rated coffees. 
+    """)
+    
+
 
 ###################################################################
 # Data Cleaning Page ##############################################
@@ -394,91 +423,95 @@ elif st.session_state.page_selection == "clustering_analysis":
 
     df = st.session_state.df 
 
+    tab1, tab2 = st.tabs(["Machine Learning", "Cluster Prediction"])
+
+    with tab1:
     # Dropping unnecessary column and handling missing values
-    df_clustering = df.drop(columns=['origin_1'], errors='ignore')
-    df_clustering = df_clustering[['100g_USD', 'rating']].dropna()
+        df_clustering = df.drop(columns=['origin_1'], errors='ignore')
+        df_clustering = df_clustering[['100g_USD', 'rating']].dropna()
 
-    # Removing outliers based on 99th percentile
-    price_quantile = df_clustering['100g_USD'].quantile(0.99)
-    df_clustering = df_clustering[df_clustering['100g_USD'] < price_quantile]
+        # Removing outliers based on 99th percentile
+        price_quantile = df_clustering['100g_USD'].quantile(0.99)
+        df_clustering = df_clustering[df_clustering['100g_USD'] < price_quantile]
 
-    # Splitting data into training and test sets
-    train_data, test_data = train_test_split(df_clustering, test_size=0.3, random_state=42)
+        # Splitting data into training and test sets
+        train_data, test_data = train_test_split(df_clustering, test_size=0.3, random_state=42)
 
-    # Standardizing the data
-    scaler = StandardScaler()
-    train_scaled = scaler.fit_transform(train_data)
-    test_scaled = scaler.transform(test_data)
+        # Standardizing the data
+        scaler = StandardScaler()
+        train_scaled = scaler.fit_transform(train_data)
+        test_scaled = scaler.transform(test_data)
 
-    # Finding optimal clusters using the elbow method
-    inertia = []
-    K = range(1, 11)
-    for k in K:
-        kmeans = KMeans(n_clusters=k, random_state=42)
-        kmeans.fit(train_scaled)
-        inertia.append(kmeans.inertia_)
+        # Finding optimal clusters using the elbow method
+        inertia = []
+        K = range(1, 11)
+        for k in K:
+            kmeans = KMeans(n_clusters=k, random_state=42)
+            kmeans.fit(train_scaled)
+            inertia.append(kmeans.inertia_)
 
-    # Plotting the Elbow curve using Plotly
-    st.subheader('Elbow Method for Optimal Number of Clusters')
-    elbow_fig = px.line(x=K, y=inertia, markers=True, labels={'x': 'Number of clusters', 'y': 'Inertia'})
-    elbow_fig.update_layout(title='Elbow Method for Optimal Number of Clusters')
-    st.plotly_chart(elbow_fig)  # Use Streamlit to display the plot
+        # Plotting the Elbow curve using Plotly
+        st.subheader('Elbow Method for Optimal Number of Clusters')
+        elbow_fig = px.line(x=K, y=inertia, markers=True, labels={'x': 'Number of clusters', 'y': 'Inertia'})
+        elbow_fig.update_layout(title='Elbow Method for Optimal Number of Clusters')
+        st.plotly_chart(elbow_fig)  # Use Streamlit to display the plot
 
-    # Choosing the optimal number of clusters (e.g., 3)
-    optimal_clusters = 3
-    kmeans = KMeans(n_clusters=optimal_clusters, random_state=42)
-    train_labels = kmeans.fit_predict(train_scaled)
+        # Choosing the optimal number of clusters (e.g., 3)
+        optimal_clusters = 3
+        kmeans = KMeans(n_clusters=optimal_clusters, random_state=42)
+        train_labels = kmeans.fit_predict(train_scaled)
 
-    # Applying the model to the test data
-    test_labels = kmeans.predict(test_scaled)
+        # Applying the model to the test data
+        test_labels = kmeans.predict(test_scaled)
 
-    # Adding cluster labels to the dataframes
-    train_data['Cluster'] = train_labels
-    test_data['Cluster'] = test_labels
+        # Adding cluster labels to the dataframes
+        train_data['Cluster'] = train_labels
+        test_data['Cluster'] = test_labels
 
-    # Displaying Silhouette Score
-    sil_score = silhouette_score(test_scaled, test_labels)
-    st.write(f'Silhouette Score for {optimal_clusters} clusters on test data: {sil_score}')
+        # Displaying Silhouette Score
+        sil_score = silhouette_score(test_scaled, test_labels)
+        st.write(f'Silhouette Score for {optimal_clusters} clusters on test data: {sil_score}')
 
-    # Listing some data points from each cluster in the training set
-    for cluster in range(optimal_clusters):
-        st.write(f"\nSample data from Cluster {cluster}:")
-        st.write(train_data[train_data['Cluster'] == cluster].head(5))
+        # Listing some data points from each cluster in the training set
+        for cluster in range(optimal_clusters):
+            st.write(f"\nSample data from Cluster {cluster}:")
+            st.write(train_data[train_data['Cluster'] == cluster].head(5))
 
-    # Visualizing the clusters for training data using Plotly
-    st.subheader('Training Data Clusters Visualization')
-    train_df = pd.DataFrame(train_scaled, columns=['Price per 100g (Scaled)', 'Rating (Scaled)'])
-    train_df['Cluster'] = train_labels
+        # Visualizing the clusters for training data using Plotly
+        st.subheader('Training Data Clusters Visualization')
+        train_df = pd.DataFrame(train_scaled, columns=['Price per 100g (Scaled)', 'Rating (Scaled)'])
+        train_df['Cluster'] = train_labels
 
-    train_scatter_fig = px.scatter(train_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Training Data Clusters')
-    st.plotly_chart(train_scatter_fig)  # Use Streamlit to display the plot
+        train_scatter_fig = px.scatter(train_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Training Data Clusters')
+        st.plotly_chart(train_scatter_fig)  # Use Streamlit to display the plot
 
-    # Visualizing the clusters for test data using Plotly
-    st.subheader('Test Data Clusters Visualization')
-    test_df = pd.DataFrame(test_scaled, columns=['Price per 100g (Scaled)', 'Rating (Scaled)'])
-    test_df['Cluster'] = test_labels
+        # Visualizing the clusters for test data using Plotly
+        st.subheader('Test Data Clusters Visualization')
+        test_df = pd.DataFrame(test_scaled, columns=['Price per 100g (Scaled)', 'Rating (Scaled)'])
+        test_df['Cluster'] = test_labels
 
-    test_scatter_fig = px.scatter(test_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Test Data Clusters')
-    st.plotly_chart(test_scatter_fig)  # Use Streamlit to display the plot
+        test_scatter_fig = px.scatter(test_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Test Data Clusters')
+        st.plotly_chart(test_scatter_fig)  # Use Streamlit to display the plot
 
+    with tab2:
     # User input for new price and rating
-    st.subheader('Input Your Own Values for Prediction')
-    user_price = st.number_input('Enter Price per 100g (USD):', min_value=0.0, format="%.2f", value=9.5)  # Default value set to 10.0
-    user_rating = st.number_input('Enter Rating:', min_value=0.0, max_value=100.0, format="%.1f", value=92.0)  # Default value set to 85.0
+        st.subheader('Input Your Own Values for Prediction')
+        user_price = st.number_input('Enter Price per 100g (USD):', min_value=0.0, format="%.2f", value=9.5)  # Default value set to 10.0
+        user_rating = st.number_input('Enter Rating:', min_value=0.0, max_value=100.0, format="%.1f", value=92.0)  # Default value set to 85.0
 
-    # Predicting the cluster for user input
-    if st.button('Predict Cluster'):
-        user_data = pd.DataFrame({'100g_USD': [user_price], 'rating': [user_rating]})
-        user_scaled = scaler.transform(user_data)
-        user_cluster = kmeans.predict(user_scaled)
-        st.write(f'The predicted cluster for the input values is: {user_cluster[0]}')
+        # Predicting the cluster for user input
+        if st.button('Predict Cluster'):
+            user_data = pd.DataFrame({'100g_USD': [user_price], 'rating': [user_rating]})
+            user_scaled = scaler.transform(user_data)
+            user_cluster = kmeans.predict(user_scaled)
+            st.write(f'The predicted cluster for the input values is: {user_cluster[0]}')
 
-        # Visualizing the user input data point
-        user_df = pd.DataFrame({'Price per 100g (Scaled)': user_scaled[0][0], 'Rating (Scaled)': user_scaled[0][1], 'Predicted_Cluster': user_cluster[0]}, index=[0])
-        comparison_fig = px.scatter(train_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Comparison of User Input with Training Data')
-        comparison_fig.add_scatter(x=user_df['Price per 100g (Scaled)'], y=user_df['Rating (Scaled)'], mode='markers', marker=dict(size=10, color='red'), name='User  Input', showlegend=True)
-        st.plotly_chart(comparison_fig)  # Use Streamlit to display the plot
-            
+            # Visualizing the user input data point
+            user_df = pd.DataFrame({'Price per 100g (Scaled)': user_scaled[0][0], 'Rating (Scaled)': user_scaled[0][1], 'Predicted_Cluster': user_cluster[0]}, index=[0])
+            comparison_fig = px.scatter(train_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Comparison of User Input with Training Data')
+            comparison_fig.add_scatter(x=user_df['Price per 100g (Scaled)'], y=user_df['Rating (Scaled)'], mode='markers', marker=dict(size=10, color='red'), name='User  Input', showlegend=True)
+            st.plotly_chart(comparison_fig)  # Use Streamlit to display the plot
+                
 ###################################################################
 # Description to Rating Page ################################################
 elif st.session_state.page_selection == "description_to_rating":
