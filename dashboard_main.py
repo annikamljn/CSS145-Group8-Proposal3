@@ -226,8 +226,6 @@ elif st.session_state.page_selection == "dataset":
     """)
     
 
-
-###################################################################
 ###################################################################
 # Data Cleaning Page ##############################################
 elif st.session_state.page_selection == "data_cleaning":
@@ -370,6 +368,9 @@ df['loc_country_encoded'] = encoder.fit_transform(df['loc_country'])
 df['origin_1_encoded'] = encoder.fit_transform(df['origin_1'])
 df['origin_2_encoded'] = encoder.fit_transform(df['origin_2'])
     """, language='python')
+    
+    # After cleaning the data, store it in session state
+    st.session_state.df = df
 
     # Display encoded columns
     st.write("Encoded Columns:")
