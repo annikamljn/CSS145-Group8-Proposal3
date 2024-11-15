@@ -970,6 +970,32 @@ elif st.session_state.page_selection == "clustering_analysis":
         test_scatter_fig = px.scatter(test_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Test Data Clusters')
         st.plotly_chart(test_scatter_fig)  # Use Streamlit to display the plot
 
+        st.markdown("""
+        ### Understanding the Model
+
+        The Coffee Clustering Model categorizes coffee into distinct groups based on similar attributes using clustering techniques. This helps identify patterns and group coffees with comparable price and rating characteristics.
+
+        ### Data Preprocessing
+
+        Before clustering, the data undergoes the following steps:
+        - **Feature Selection**: Focused on `Price per 100g (USD)` and `Rating`.
+        - **Handling Missing Values**: Dropped rows with missing data.
+        - **Outlier Removal**: Used the 99th percentile to exclude extreme price values.
+        - **Standardization**: Scaled the data for optimal clustering performance.
+
+        ### Clustering Technique
+
+        - **K-Means Algorithm**: Groups data into clusters by minimizing the distance between points and their assigned cluster centers.
+        - **Elbow Method**: Determines the optimal number of clusters by analyzing inertia (sum of squared distances within clusters).
+
+        The model identified **3 clusters** as the optimal grouping for the coffee dataset.
+
+        ### Evaluation and Insights
+
+        - **Silhouette Score**: Measures how well-separated the clusters are, with higher scores indicating better-defined clusters.
+        - Visualizations of training and test clusters help interpret groupings, showing how coffee samples are distributed based on price and rating.
+        """)
+
     with tab2:
     # User input for new price and rating
         st.subheader('Input Your Own Values for Prediction')
@@ -1084,6 +1110,22 @@ elif st.session_state.page_selection == "coffee_price_prediction":
         rf_model.fit(X, y)
         """
         st.code(rf_code, language='python')
+
+        st.markdown("""
+        ### Understanding the Model
+
+        This coffee price prediction model utilizes a combination of features to estimate the price of coffee per 100g:
+
+        - **Roast Type**: Encoded to represent different coffee roasting styles numerically.
+        - **Bean Origin**: Encoded values for the origin of the coffee beans.
+        - **Roaster Location**: Encoded information about the location of the coffee roaster.
+
+        ### Prediction Algorithms
+
+        The model employs two regression algorithms to predict coffee prices:
+        1. **Decision Tree Regressor**: Captures non-linear relationships between the features and the target variable (price).
+        2. **Random Forest Regressor**: Combines multiple decision trees for a more robust and accurate prediction.
+        """)
 
     ### Tab 2: Model Evaluation ###
     with tab2:
@@ -1526,5 +1568,23 @@ elif st.session_state.page_selection == "coffee_rec_model":
 # Conclusions Page ################################################
 elif st.session_state.page_selection == "conclusion":
     st.header("📝 Conclusion")
+    st.markdown("""
+    ### Key Insights and Findings
 
-    # Your content for the CONCLUSION page goes here
+    Several patterns were found in the coffee dataset by data driven exploration and modeling with the data. The insights of these factors provide tips for the future product and service offerings meant to please the consumers.
+
+    #### 1. Understanding Customer Sentiments:
+    We first analyzed customer reviews. The text data processing step involves cleaning, tokenizing, and filtering out common words and the team was able to successfully identify recurring themes which indicate positive and negative sentiment drivers. Word clouds and frequency analyses on the terms most commonly linked to customer satisfaction or dissatisfaction gave me a visual summary of the terms.
+
+    #### 2. Clustering for Market Segmentation:
+    Different types of clustering techniques were used to define groups of customers with different preferences and expectations. It is found that these clusters represent different types of consumers and these can provide insights on which personalized marketing strategies they could adopt by targeting different consumer needs more specifically.
+
+    #### 3. Sentiment Analysis for Customer Insights:
+    Customer reviews were evaluated with the Sentiment Intensity Analyzer to determine the emotional tone of reviews. This tool successfully quantified the customer sentiment and the satisfaction, the dissatisfaction. These insights help data driven decisions, helping businesses develop and market products based on the real time customer sentiment.
+
+    #### 4. Practical Implications:
+    With these insights to boot, coffee businesses then can better serve consumer needs, optimize product offerings and optimize marketing strategies for stronger customer engagement.
+
+    #### Final Takeaway:
+    This analysis puts the spotlight on how data science facilitates the gap between product and customer satisfaction to make for better customer experience and better data driven business growth.
+    """)
