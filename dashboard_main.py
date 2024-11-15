@@ -1004,7 +1004,7 @@ elif st.session_state.page_selection == "coffee_price_prediction":
     ### Tab 1: Machine Learning ###
 with tab1:
     st.subheader("Model Training")
-    
+
     # 1. Create a copy of the DataFrame for regression analysis
     df_coffeeprice_regression = df.copy()
 
@@ -1014,18 +1014,17 @@ with tab1:
         st.error("The required columns are missing in the DataFrame.")
         st.stop()
 
-    # 2. Select relevant columns and rename them if pre-processed
+    # Select relevant columns
     df_coffeeprice_regression = df_coffeeprice_regression[required_columns]
     df_coffeeprice_regression = df_coffeeprice_regression.rename(columns={
         'origin_2': 'origin_2_processed',
         'loc_country': 'loc_processed'
     })
 
-    # 3. Drop rows with missing values
+    # Drop rows with missing values
     df_coffeeprice_regression = df_coffeeprice_regression.dropna()
 
-    ### Outlier Handling ###
-    # 4. Remove outliers using the Interquartile Range (IQR) method
+    # Handling outliers using the IQR method
     Q1 = df_coffeeprice_regression['100g_USD'].quantile(0.25)
     Q3 = df_coffeeprice_regression['100g_USD'].quantile(0.75)
     IQR = Q3 - Q1
@@ -1036,37 +1035,49 @@ with tab1:
         (df_coffeeprice_regression['100g_USD'] <= upper_bound)
     ]
 
-    ### Encoding Categorical Variables ###
+    # Encoding Categorical Variables
     le_roast = LabelEncoder()
     le_origin_2 = LabelEncoder()
     le_location = LabelEncoder()
-
     df_coffeeprice_regression['roast'] = le_roast.fit_transform(df_coffeeprice_regression['roast'])
     df_coffeeprice_regression['origin_2_processed'] = le_origin_2.fit_transform(df_coffeeprice_regression['origin_2_processed'])
     df_coffeeprice_regression['loc_processed'] = le_location.fit_transform(df_coffeeprice_regression['loc_processed'])
 
-    # 6. Define features (X) and target (y)
+    # Define features (X) and target (y)
     X = df_coffeeprice_regression[['roast', 'origin_2_processed', 'loc_processed']]
     y = df_coffeeprice_regression['100g_USD']
 
     ### Model Training ###
     if st.button("Train Models"):
-        # Split data
+        # Split data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-        # Train models
-        rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
-        rf_model.fit(X_train, y_train)
-
+        # Train Decision Tree Model
+        st.write("### Training the Decision Tree Classifier")
+        dt_code = """
+        dt_model = DecisionTreeRegressor(random_state=42)
+        dt_model.fit(X_train, y_train)
+        """
+        st.code(dt_code, language='python')
         dt_model = DecisionTreeRegressor(random_state=42)
         dt_model.fit(X_train, y_train)
 
-        # Store models in session state
-        st.session_state.rf_model = rf_model
-        st.session_state.dt_model = dt_model
-        st.session_state.X_test = X_test
-        st.session_state.y_test = y_test
-        
+        # Train Random Forest Model
+        st.write("### Training the Random Forest Regressor")
+        rf_code = """
+        rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+        rf_model.fit(X_train, y_train)
+        """
+        st.code(rf_code, language='python')
+        rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+        rf_model.fit(X_train, y_train)
+
+        # Save models in session state
+        st.session_state['dt_model'] = dt_model
+        st.session_state['rf_model'] = rf_model
+        st.session_state['X_test'] = X_test
+        st.session_state['y_test'] = y_test
+
         st.success("Models trained successfully!")
 
 
