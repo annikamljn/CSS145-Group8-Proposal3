@@ -1606,19 +1606,21 @@ elif st.session_state.page_selection == "conclusion":
     - The most significant features for price prediction were bean origins, while the sentiment intensity analyzer and recommendation models primarily relied on descriptions. The clustering model used both rating and price to analyze patterns.
 
     #### 3. 📈 **Model Performance (Price Prediction)**  
-   - The sentiment analysis model effectively translates coffee descriptions into predicted ratings, revealing clear sentiment trends in reviews.  
-
+   - Key predictors include bean origins and roaster locations.  
+   - The model is able to successfully make predictions depending on a coffee's roast type, origin, and roaster location. However, the model's **Mean Squared Error is around 2.39**, which is relatively high. This means it could be further improved. 
+    
     #### 4. 📈 **Model Performance (Sentiment Intensity Analysis)**  
-   - The sentiment analysis model effectively translates coffee descriptions into predicted ratings, revealing clear sentiment trends in reviews.  
-
+    - The model heavily relies on coffee descriptions to make rating predictions. 
+    - Due to the limitations of our dataset, in which it primarily contains highly rated products, the model **tends to predict high ratings** regardless of negative words.
+                
     #### 5. 📈 **Model Performance (Coffee Recommendation)**  
-   - The recommendation model accurately identifies coffees with similar descriptions, proving useful for personalization.  
-
+   - The recommendation model primarily utilizes the coffee descriptions to curate recommendations.
+   - The model has moderate performance, with the capability to recommend coffees with **similarity scores ranging from 30-40%**.
+                
     #### 6. 📈 **Model Performance (Clustering Analysis)**  
    - The clustering model successfully grouped coffees into clusters with shared pricing and rating characteristics, uncovering market trends.  
    - The model was able split the coffees into 3 groups: low price with average rating, average price with high rating, and high price with average to high ratings.
 
-    
     #### Final Takeaway:
-    This analysis puts the spotlight on how data science facilitates the gap between product and customer satisfaction to make for better customer experience and better data driven business growth.
+    This project showed how the Coffee Reviews Dataset can be used to uncover insights and build reliable models. Its detailed structure made it easy to work with, requiring minimal cleaning. The models performed well, predicting prices, analyzing sentiment, and clustering coffees effectively. While there were challenges like variations in descriptions, the results highlight how data and machine learning can be combined to explore trends and preferences in the coffee market.
     """)

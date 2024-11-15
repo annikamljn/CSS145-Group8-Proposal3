@@ -35,24 +35,26 @@ This Streamlit dashboard is designed to analyze and model a comprehensive coffee
 ## 💡 Findings / Insights  
 
 1. **Dataset Characteristics**  
-   - The most significant features for price prediction were bean origins, while the sentiment intensity analyzer and recommendation models primarily relied on descriptions. The clustering model used both rating and price to analyze patterns.
+   - The dataset provides a comprehensive overview of **coffee names, origins, types, and descriptive reviews**. The dataset only contains two numerical columns, namely `100g_USD` (price) and `rating`. Price values are widely spread out and had a high standard deviation, while rating distributions were moderately spread out. Categorical classes varied in distribution.
 
 2. **Feature Distributions and Separability**  
-   - The most significant features for price prediction were bean origins, while the sentiment intensity analyzer and recommendation models primarily relied on descriptions. The clustering model used both rating and price to analyze patterns.
+   - The most significant features for `price prediction` were **bean origins**, while the `sentiment intensity analyzer` and `recommendation model` primarily relied on **descriptions**. The `clustering` model used both **rating and price** to analyze patterns.
 
-3. **Model Performance (Price Prediction)**  
-   - The price prediction model achieved high accuracy, demonstrating effective use of categorical and numerical features.  
-   - Key predictors include origin and coffee type.  
+3. **Model Performance (Price Prediction)**   
+   - Key predictors include bean origins and roaster locations.  
+   - The model is able to successfully make predictions depending on a coffee's roast type, origin, and roaster location. However, the model's **Mean Squared Error is around 2.39**, which is relatively high. This means it could be further improved. 
 
 4. **Model Performance (Sentiment Intensity Analysis)**  
-   - The sentiment analysis model effectively translates coffee descriptions into predicted ratings, revealing clear sentiment trends in reviews.  
+   - The model heavily relies on coffee descriptions to make rating predictions. 
+   - Due to the limitations of our dataset, in which it primarily contains highly rated products, the model **tends to predict high ratings** regardless of negative words.
 
 5. **Model Performance (Coffee Recommendation)**  
-   - The recommendation model accurately identifies coffees with similar descriptions, proving useful for personalization.  
+   - The recommendation model primarily utilizes the coffee descriptions to curate recommendations.
+   - The model has moderate performance, with the capability to recommend coffees with **similarity scores ranging from 30-40%**.
 
 6. **Model Performance (Clustering Analysis)**  
    - The clustering model successfully grouped coffees into clusters with shared pricing and rating characteristics, uncovering market trends.  
-   - The model was able split the coffees into 3 groups: low price with average rating, average price with high rating, and high price with average to high ratings.
+   - The model was able split the coffees into **3 clusters**: low price with average rating, average price with high rating, and high price with average to high ratings.
   
 
 ---
