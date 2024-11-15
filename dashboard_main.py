@@ -240,9 +240,15 @@ elif st.session_state.page_selection == "data_cleaning":
 
     ##### Removing nulls
     st.subheader("Removing nulls, duplicates, etc.", divider=True)
+    st.markdown("In this step, we will identify and remove any missing values, as these can lead to inaccurate analyses. We’ll also check for duplicate rows to ensure the dataset’s integrity.")
     missing_values = round((df.isnull().sum()/df.shape[0])*100, 2)
     st.write(missing_values)
 
+    # Code snippet for removing null values
+    st.code("""
+df = df.dropna()
+    """, language="python")
+    
     # Drop NA
     df = df.dropna()
     st.write("Missing values after dropping NA:")
@@ -255,6 +261,7 @@ elif st.session_state.page_selection == "data_cleaning":
 
     ##### Removing Outliers
     st.subheader("Removing Outliers", divider=True)
+    st.markdown("Outliers can significantly skew analysis results. We’ll use the Interquartile Range (IQR) method to identify and remove outliers in the 100g_USD (price per 100g) and rating columns.")
     plt.figure(figsize=(10, 4))
     plt.boxplot(df['100g_USD'], vert=False)
     plt.ylabel('Price Column (100g_USD)')
@@ -268,7 +275,17 @@ elif st.session_state.page_selection == "data_cleaning":
     price_lower_bound = max(0, Q1 - 1.5 * IQR)
     price_upper_bound = Q3 + 1.5 * IQR
 
+    # Code snippet for removing outliers
+    st.code("""
+Q1 = df['100g_USD'].quantile(0.25)
+Q3 = df['100g_USD'].quantile(0.75)
+IQR = Q3 - Q1
+price_lower_bound = max(0, Q1 - 1.5 * IQR)
+price_upper_bound = Q3 + 1.5 * IQR
 
+df = df[(df['100g_USD'] >= price_lower_bound) & (df['100g_USD'] <= price_upper_bound)]
+    """, language="python")
+    
     st.write('Lower Bound:', price_lower_bound)
     st.write('Upper Bound:', price_upper_bound)
 
@@ -281,6 +298,7 @@ elif st.session_state.page_selection == "data_cleaning":
 
     # Rating Outliers
     st.subheader("Rating Outliers")
+    st.markdown("We will also remove outliers from the rating column using the same IQR method.")
     plt.figure(figsize=(10, 4))
     plt.boxplot(df['rating'], vert=False)
     plt.ylabel('Rating Column')
@@ -294,6 +312,17 @@ elif st.session_state.page_selection == "data_cleaning":
     rating_lower_bound = max(0, Q1 - 1.5 * IQR)
     rating_upper_bound = Q3 + 1.5 * IQR
 
+    # Code snippet for rating outliers removal
+    st.code("""
+Q1 = df['rating'].quantile(0.25)
+Q3 = df['rating'].quantile(0.75)
+IQR = Q3 - Q1
+rating_lower_bound = max(0, Q1 - 1.5 * IQR)
+rating_upper_bound = Q3 + 1.5 * IQR
+
+df = df[(df['rating'] >= rating_lower_bound) & (df['rating'] <= rating_upper_bound)]
+    """, language="python")
+
     st.write('Lower Bound:', rating_lower_bound)
     st.write('Upper Bound:', rating_upper_bound)
 
@@ -304,13 +333,47 @@ elif st.session_state.page_selection == "data_cleaning":
     st.markdown("**Rating Statistics after Outlier Removal:**")
     st.write(df['rating'].describe())
 
+    
     ##### Text pre-processing
     st.subheader("Coffee review text pre-processing", divider=True)
+    st.markdown("Text data often needs to be cleaned and processed to extract insights. Here, we will perform the following preprocessing steps on the coffee review descriptions:\n"
+                "- Convert text to lowercase.\n"
+                "- Remove punctuation.\n"
+                "- Tokenize words.\n"
+                "- Remove stopwords (common words like 'the' and 'is' that don't add much meaning).\n"
+                "- Lemmatize words (reduce words to their base form).")
+    # Code snippet for text pre-processing
+    st.code("""
+def preprocess_text(text):
+    # 1. Lowercase
+    text = text.lower()
+
+    # 2. Remove punctuations
+    text = text.translate(str.maketrans('', '', string.punctuation))
+
+    # 3. Tokenize
+    tokens = word_tokenize(text)
+
+    # 4. Stopword Removal
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word not in stop_words]
+
+    # 5. Lemmatize
+    lemmatizer = WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(token) for token in tokens]
+
+    return tokens
+
+df['desc_1_processed'] = df['desc_1'].apply(preprocess_text)
+df['desc_2_processed'] = df['desc_2'].apply(preprocess_text)
+df['desc_3_processed'] = df['desc_3'].apply(preprocess_text)
+    """, language="python")
+
 
     lemmatizer = WordNetLemmatizer()
     stop_words = set(stopwords.words('english'))
 
-    st.markdown("`df[['desc_1', 'desc_2', 'desc_3']].head()`")
+   
     st.write(df[['desc_1', 'desc_2', 'desc_3']].head())
 
     # Combining all the preprocessing techniques in one function
@@ -334,16 +397,21 @@ elif st.session_state.page_selection == "data_cleaning":
 
         return tokens
 
+
     # Apply the preprocessing
     df['desc_1_processed'] = df['desc_1'].apply(preprocess_text)
     df['desc_2_processed'] = df['desc_2'].apply(preprocess_text)
     df['desc_3_processed'] = df['desc_3'].apply(preprocess_text)
 
+
+    
+    
     # Display the processed DataFrame
     st.write(df[['desc_1_processed', 'desc_1', 'desc_2_processed', 'desc_2', 'desc_3_processed', 'desc_3']].head())
 
     ##### Encoding object columns
     st.subheader("Encoding object columns", divider=True)
+    st.markdown("Encoding categorical columns is essential to make them usable in machine learning models. Here, we use label encoding to convert text-based categorical values into numeric form.")
 
     # Display DataFrame info
     info_buffer = st.empty()  
