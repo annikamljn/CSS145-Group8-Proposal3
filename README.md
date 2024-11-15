@@ -16,7 +16,7 @@ This Streamlit dashboard is designed to analyze and model a comprehensive coffee
 -  [Google Colab Notebook](https://colab.research.google.com/drive/1wd2m0H3kK7kpx-FXZEfybRLnjRESx-rU?usp=sharing)
 
  ### 📊 Dataset
--  [Coffee Reviews Dataset(Kaggle)](https://www.kaggle.com/datasets/schmoyote/coffee-reviews-dataset?select=coffee_analysis.csv)
+-  [Coffee Reviews Dataset (Kaggle)](https://www.kaggle.com/datasets/schmoyote/coffee-reviews-dataset?select=coffee_analysis.csv)
 
 ---
 
@@ -32,25 +32,32 @@ This Streamlit dashboard is designed to analyze and model a comprehensive coffee
 
 ---
 
-### Key Findings / Insights
+## 💡 Findings / Insights  
 
-1. **Dataset Characteristics** – Overview of coffee types, common origins, and other dataset-specific trends.
-2. **Feature Distributions and Separability** – Insights into the distributions and separability of key features within the dataset.
-3. **Model Performance (Price Prediction)** – Evaluation of price prediction model accuracy and reliability.
-4. **Model Performance (Sentiment Intensity Analyzer)** – Analysis of sentiment model effectiveness in predicting ratings based on descriptions.
-5. **Model Performance (Coffee Recommendation)** – Overview of recommendation model performance and quality.
-6. **Model Performance (Clustering Analysis)** – Assessment of coffee clustering outcomes and interpretation of group characteristics.
+1. **Dataset Characteristics**  
+   The dataset provides a comprehensive overview of coffee names, origins, types, and descriptive reviews, with balanced data across several variables.  
+
+2. **Feature Distributions and Separability**  
+   - Word cloud analysis highlights frequent descriptive terms in coffee reviews.  
+   - Price and rating distributions suggest distinct segmentation potential for clustering.  
+
+3. **Model Performance (Price Prediction)**  
+   - The price prediction model achieved high accuracy, demonstrating effective use of categorical and numerical features.  
+   - Key predictors include origin and coffee type.  
+
+4. **Model Performance (Sentiment Intensity Analysis)**  
+   - The sentiment analysis model effectively translates coffee descriptions into predicted ratings, revealing clear sentiment trends in reviews.  
+
+5. **Model Performance (Coffee Recommendation)**  
+   - The recommendation model accurately identifies coffees with similar descriptions, proving useful for personalization.  
+
+6. **Model Performance (Clustering Analysis)**  
+   - The clustering model successfully grouped coffees into clusters with shared pricing and rating characteristics, uncovering market trends.  
 
 ---
 
-### How to Use the Dashboard
-1. **Navigate** through each page to view data previews, EDA visualizations, and model results.
-2. **Interact** with models by entering new data for price predictions or recommendations based on your coffee preferences.
-3. **Explore** cluster groupings to understand coffee segments and trends in ratings and pricing.
+### Summing up:
 
----
-
-### Conclusion
-This dashboard provides a comprehensive tool for coffee data exploration, offering valuable insights into coffee characteristics, pricing, sentiment analysis, and similarity grouping. Through predictive and clustering models, the project demonstrates practical applications of machine learning in data-driven coffee analysis.
+This project showed how the Coffee Reviews Dataset can be used to uncover insights and build reliable models. Its detailed structure made it easy to work with, requiring minimal cleaning. The models performed well, predicting prices, analyzing sentiment, and clustering coffees effectively. While there were challenges like variations in descriptions, the results highlight how data and machine learning can be combined to explore trends and preferences in the coffee market.
 
 ---
