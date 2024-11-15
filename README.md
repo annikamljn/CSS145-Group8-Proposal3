@@ -12,7 +12,7 @@ This Streamlit dashboard is designed to analyze and model a comprehensive coffee
 ---
 
 ### 🔗 Links 
--  [Streamlit App Link - TO BE UPDATED](https://colab.research.google.com/drive/1wd2m0H3kK7kpx-FXZEfybRLnjRESx-rU?usp=sharing)
+-  [Streamlit App Link](https://group8-final-project.streamlit.app/)
 -  [Google Colab Notebook](https://colab.research.google.com/drive/1wd2m0H3kK7kpx-FXZEfybRLnjRESx-rU?usp=sharing)
 
  ### 📊 Dataset
@@ -35,11 +35,10 @@ This Streamlit dashboard is designed to analyze and model a comprehensive coffee
 ## 💡 Findings / Insights  
 
 1. **Dataset Characteristics**  
-   The dataset provides a comprehensive overview of coffee names, origins, types, and descriptive reviews, with balanced data across several variables.  
+   - The most significant features for price prediction were bean origins, while the sentiment intensity analyzer and recommendation models primarily relied on descriptions. The clustering model used both rating and price to analyze patterns.
 
 2. **Feature Distributions and Separability**  
-   - Word cloud analysis highlights frequent descriptive terms in coffee reviews.  
-   - Price and rating distributions suggest distinct segmentation potential for clustering.  
+   - The most significant features for price prediction were bean origins, while the sentiment intensity analyzer and recommendation models primarily relied on descriptions. The clustering model used both rating and price to analyze patterns.
 
 3. **Model Performance (Price Prediction)**  
    - The price prediction model achieved high accuracy, demonstrating effective use of categorical and numerical features.  
@@ -53,6 +52,8 @@ This Streamlit dashboard is designed to analyze and model a comprehensive coffee
 
 6. **Model Performance (Clustering Analysis)**  
    - The clustering model successfully grouped coffees into clusters with shared pricing and rating characteristics, uncovering market trends.  
+   - The model was able split the coffees into 3 groups: low price with average rating, average price with high rating, and high price with average to high ratings.
+  
 
 ---
 
