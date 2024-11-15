@@ -986,7 +986,7 @@ elif st.session_state.page_selection == "clustering_analysis":
             st.plotly_chart(comparison_fig)  # Use Streamlit to display the plot
 
 ###################################################################
-# Coffee Price Prediction Page ################################################
+# Price Prediction Analysis ###########################################
 elif st.session_state.page_selection == "coffee_price_prediction":
     st.header("☕ Coffee Price Prediction Model")
 
@@ -1002,143 +1002,149 @@ elif st.session_state.page_selection == "coffee_price_prediction":
     tab1, tab2 = st.tabs(["Machine Learning", "Model Evaluation"])
 
     ### Tab 1: Machine Learning ###
-with tab1:
-    st.subheader("Model Training")
+    with tab1:
+        st.subheader("Model Training")
 
-    # 1. Create a copy of the DataFrame for regression analysis
-    df_coffeeprice_regression = df.copy()
+        # Create a copy of the DataFrame for regression analysis
+        df_coffeeprice_regression = df.copy()
 
-    # Check if the necessary columns exist
-    required_columns = ['roast', 'origin_2', 'loc_country', '100g_USD']
-    if not all(col in df_coffeeprice_regression.columns for col in required_columns):
-        st.error("The required columns are missing in the DataFrame.")
-        st.stop()
+        # Check if the necessary columns exist
+        required_columns = ['roast', 'origin_2', 'loc_country', '100g_USD']
+        if not all(col in df_coffeeprice_regression.columns for col in required_columns):
+            st.error("The required columns are missing in the DataFrame.")
+            st.stop()
 
-    # Select relevant columns
-    df_coffeeprice_regression = df_coffeeprice_regression[required_columns]
-    df_coffeeprice_regression = df_coffeeprice_regression.rename(columns={
-        'origin_2': 'origin_2_processed',
-        'loc_country': 'loc_processed'
-    })
+        # Select relevant columns
+        df_coffeeprice_regression = df_coffeeprice_regression[required_columns]
+        df_coffeeprice_regression = df_coffeeprice_regression.rename(columns={
+            'origin_2': 'origin_2_processed',
+            'loc_country': 'loc_processed'
+        })
 
-    # Drop rows with missing values
-    df_coffeeprice_regression = df_coffeeprice_regression.dropna()
+        # Drop rows with missing values
+        df_coffeeprice_regression = df_coffeeprice_regression.dropna()
 
-    # Handling outliers using the IQR method
-    Q1 = df_coffeeprice_regression['100g_USD'].quantile(0.25)
-    Q3 = df_coffeeprice_regression['100g_USD'].quantile(0.75)
-    IQR = Q3 - Q1
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
-    df_coffeeprice_regression = df_coffeeprice_regression[
-        (df_coffeeprice_regression['100g_USD'] >= lower_bound) & 
-        (df_coffeeprice_regression['100g_USD'] <= upper_bound)
-    ]
+        # Handling outliers using the IQR method
+        Q1 = df_coffeeprice_regression['100g_USD'].quantile(0.25)
+        Q3 = df_coffeeprice_regression['100g_USD'].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        df_coffeeprice_regression = df_coffeeprice_regression[
+            (df_coffeeprice_regression['100g_USD'] >= lower_bound) & 
+            (df_coffeeprice_regression['100g_USD'] <= upper_bound)
+        ]
 
-    # Encoding Categorical Variables
-    le_roast = LabelEncoder()
-    le_origin_2 = LabelEncoder()
-    le_location = LabelEncoder()
-    df_coffeeprice_regression['roast'] = le_roast.fit_transform(df_coffeeprice_regression['roast'])
-    df_coffeeprice_regression['origin_2_processed'] = le_origin_2.fit_transform(df_coffeeprice_regression['origin_2_processed'])
-    df_coffeeprice_regression['loc_processed'] = le_location.fit_transform(df_coffeeprice_regression['loc_processed'])
+        # Encoding Categorical Variables
+        le_roast = LabelEncoder()
+        le_origin_2 = LabelEncoder()
+        le_location = LabelEncoder()
+        df_coffeeprice_regression['roast'] = le_roast.fit_transform(df_coffeeprice_regression['roast'])
+        df_coffeeprice_regression['origin_2_processed'] = le_origin_2.fit_transform(df_coffeeprice_regression['origin_2_processed'])
+        df_coffeeprice_regression['loc_processed'] = le_location.fit_transform(df_coffeeprice_regression['loc_processed'])
 
-    # Define features (X) and target (y)
-    X = df_coffeeprice_regression[['roast', 'origin_2_processed', 'loc_processed']]
-    y = df_coffeeprice_regression['100g_USD']
+        # Define features (X) and target (y)
+        X = df_coffeeprice_regression[['roast', 'origin_2_processed', 'loc_processed']]
+        y = df_coffeeprice_regression['100g_USD']
 
-    ### Model Training ###
-    if st.button("Train Models"):
-        # Split data into training and testing sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
-        # Train Decision Tree Model
-        st.write("### Training the Decision Tree Classifier")
-        dt_code = """
+        # Automatically train models when the page is opened
+        st.write("### Training the Decision Tree Regressor")
         dt_model = DecisionTreeRegressor(random_state=42)
-        dt_model.fit(X_train, y_train)
-        """
-        st.code(dt_code, language='python')
-        dt_model = DecisionTreeRegressor(random_state=42)
-        dt_model.fit(X_train, y_train)
+        dt_model.fit(X, y)
 
-        # Train Random Forest Model
-        st.write("### Training the Random Forest Regressor")
-        rf_code = """
         rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
-        rf_model.fit(X_train, y_train)
-        """
-        st.code(rf_code, language='python')
-        rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
-        rf_model.fit(X_train, y_train)
+        rf_model.fit(X, y)
 
         # Save models in session state
         st.session_state['dt_model'] = dt_model
         st.session_state['rf_model'] = rf_model
-        st.session_state['X_test'] = X_test
-        st.session_state['y_test'] = y_test
 
-        st.success("Models trained successfully!")
 
+        # Display code snippets
+        st.write("### Decision Tree Regressor Code")
+        dt_code = """
+        from sklearn.tree import DecisionTreeRegressor
+
+        # Create and train the Decision Tree model
+        dt_model = DecisionTreeRegressor(random_state=42)
+        dt_model.fit(X, y)
+        """
+        st.code(dt_code, language='python')
+
+        st.write("### Random Forest Regressor Code")
+        rf_code = """
+        from sklearn.ensemble import RandomForestRegressor
+
+        # Create and train the Random Forest model
+        rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+        rf_model.fit(X, y)
+        """
+        st.code(rf_code, language='python')
 
     ### Tab 2: Model Evaluation ###
     with tab2:
         st.subheader("Model Evaluation")
-        
-        # 10. Evaluate Random Forest model performance
-        rf_pred = rf_model.predict(X_test)
-        rf_mse = mean_squared_error(y_test, rf_pred)
-        rf_r2 = r2_score(y_test, rf_pred)
-        st.write(f"Random Forest - Mean Squared Error (MSE): {rf_mse:.2f}")
-        st.write(f"Random Forest - R² Score: {rf_r2:.2f}")
 
-        # 11. Evaluate Decision Tree model performance
-        dt_pred = dt_model.predict(X_test)
-        dt_mse = mean_squared_error(y_test, dt_pred)
-        dt_r2 = r2_score(y_test, dt_pred)
-        st.write(f"Decision Tree - Mean Squared Error (MSE): {dt_mse:.2f}")
-        st.write(f"Decision Tree - R² Score: {dt_r2:.2f}")
+        # Check if models are trained and stored in session state
+        if 'rf_model' in st.session_state and 'dt_model' in st.session_state:
+            rf_model = st.session_state['rf_model']
+            dt_model = st.session_state['dt_model']
 
-        ### Visualization: Actual vs Predicted Prices ###
-        st.subheader("Actual vs Predicted Prices (Random Forest)")
-        fig, ax = plt.subplots()
-        ax.scatter(y_test, rf_pred, label='Random Forest', alpha=0.7)
-        ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)
-        ax.set_xlabel('Actual Price (USD)')
-        ax.set_ylabel('Predicted Price (USD)')
-        ax.legend()
-        st.pyplot(fig)
+            # Split data into training and testing sets
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-        ### Feature Importance ###
-        st.subheader("Feature Importance (Random Forest)")
-        rf_importance = rf_model.feature_importances_
-        for i, score in enumerate(rf_importance):
-            st.write(f"Feature: {X.columns[i]}, Score: {score:.4f}")
+            # Evaluate Random Forest model performance
+            rf_pred = rf_model.predict(X_test)
+            rf_mse = mean_squared_error(y_test, rf_pred)
+            rf_r2 = r2_score(y_test, rf_pred)
+            st.write(f"Random Forest - Mean Squared Error (MSE): {rf_mse:.2f}")
+            st.write(f"Random Forest - R² Score: {rf_r2:.2f}")
 
-        ### User Input for Prediction ###
-        st.subheader("Predict Coffee Price with Your Inputs")
-        user_roast = st.selectbox('Select Roast Type:', le_roast.classes_)
-        user_origin = st.selectbox('Select Bean Origin:', le_origin_2.classes_)
-        user_location = st.selectbox('Select Roaster Location:', le_location.classes_)
+            # Evaluate Decision Tree model performance
+            dt_pred = dt_model.predict(X_test)
+            dt_mse = mean_squared_error(y_test, dt_pred)
+            dt_r2 = r2_score(y_test, dt_pred)
+            st.write(f"Decision Tree - Mean Squared Error (MSE): {dt_mse:.2f}")
+            st.write(f"Decision Tree - R² Score: {dt_r2:.2f}")
 
-        # Encode user inputs
-        user_roast_encoded = le_roast.transform([user_roast])[0]
-        user_origin_encoded = le_origin_2.transform([user_origin])[0]
-        user_location_encoded = le_location.transform([user_location])[0]
+            ### Visualization: Actual vs Predicted Prices ###
+            st.subheader("Actual vs Predicted Prices (Random Forest)")
+            fig, ax = plt.subplots()
+            ax.scatter(y_test, rf_pred, label='Random Forest', alpha=0.7)
+            ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)
+            ax.set_xlabel('Actual Price (USD)')
+            ax.set_ylabel('Predicted Price (USD)')
+            ax.legend()
+            st.pyplot(fig)
 
-        # Predict using Random Forest model
-        user_input = pd.DataFrame({
-            'roast': [user_roast_encoded], 
-            'origin_2_processed': [user_origin_encoded], 
-            'loc_processed': [user_location_encoded]
-        })
-        
-        if st.button('Predict Price'):
+            ### Feature Importance ###
+            st.subheader("Feature Importance (Random Forest)")
+            rf_importance = rf_model.feature_importances_
+            for i, score in enumerate(rf_importance):
+                st.write(f"Feature: {X.columns[i]}, Score: {score:.4f}")
+
+            ### User Input for Prediction ###
+            st.subheader("Predict Coffee Price with Your Inputs")
+            user_roast = st.selectbox('Select Roast Type:', le_roast.classes_)
+            user_origin = st.selectbox('Select Bean Origin:', le_origin_2.classes_)
+            user_location = st.selectbox('Select Roaster Location:', le_location.classes_)
+
+            # Encode user inputs
+            user_roast_encoded = le_roast.transform([user_roast])[0]
+            user_origin_encoded = le_origin_2.transform([user_origin])[0]
+            user_location_encoded = le_location.transform([user_location])[0]
+
+            # Predict using Random Forest model
+            user_input = pd.DataFrame({
+                'roast': [user_roast_encoded], 
+                'origin_2_processed': [user_origin_encoded], 
+                'loc_processed': [user_location_encoded]
+            })
+
             user_prediction = rf_model.predict(user_input)
             st.write(f"Predicted Coffee Price per 100g (USD): ${user_prediction[0]:.2f}")
-
-
-
+        else:
+            st.error("Models have not been trained yet. Please train the models in the previous tab.")
                 
 ###################################################################
 # Description to Rating Page ################################################
