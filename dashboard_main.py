@@ -934,6 +934,8 @@ elif st.session_state.page_selection == "coffee_price_prediction":
 
     ### Tab 1: Machine Learning ###
     with tab1:
+        st.subheader("Model Training")
+        
         # 1. Create a copy of the DataFrame for regression analysis
         df_coffeeprice_regression = df.copy()
 
@@ -986,19 +988,25 @@ elif st.session_state.page_selection == "coffee_price_prediction":
         dt_model = DecisionTreeRegressor(random_state=42)
         dt_model.fit(X_train, y_train)
 
-        st.write("Models trained successfully!")
+        st.success("Models trained successfully!")
 
     ### Tab 2: Model Evaluation ###
     with tab2:
+        st.subheader("Model Evaluation")
+        
         # 10. Evaluate Random Forest model performance
         rf_pred = rf_model.predict(X_test)
         rf_mse = mean_squared_error(y_test, rf_pred)
+        rf_r2 = r2_score(y_test, rf_pred)
         st.write(f"Random Forest - Mean Squared Error (MSE): {rf_mse:.2f}")
+        st.write(f"Random Forest - R² Score: {rf_r2:.2f}")
 
         # 11. Evaluate Decision Tree model performance
         dt_pred = dt_model.predict(X_test)
         dt_mse = mean_squared_error(y_test, dt_pred)
+        dt_r2 = r2_score(y_test, dt_pred)
         st.write(f"Decision Tree - Mean Squared Error (MSE): {dt_mse:.2f}")
+        st.write(f"Decision Tree - R² Score: {dt_r2:.2f}")
 
         ### Visualization: Actual vs Predicted Prices ###
         st.subheader("Actual vs Predicted Prices (Random Forest)")
@@ -1033,9 +1041,11 @@ elif st.session_state.page_selection == "coffee_price_prediction":
             'origin_2_processed': [user_origin_encoded], 
             'loc_processed': [user_location_encoded]
         })
+        
         if st.button('Predict Price'):
             user_prediction = rf_model.predict(user_input)
-            st.write(f"Predicted Coffee Price per 100g (USD): {user_prediction[0]:.2f}")
+            st.write(f"Predicted Coffee Price per 100g (USD): ${user_prediction[0]:.2f}")
+
 
 
                 
