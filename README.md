@@ -17,15 +17,15 @@ This Streamlit dashboard is designed to analyze and model a comprehensive coffee
 
 ---
 
-###  Project Pages and Features
-1. **Dataset** – Provides a preview of the Coffee Reviews Dataset used in this project.
-2. **Data Preprocessing** – Cleans the data by removing null values, duplicates, and outliers; tokenizes text data; and encodes categorical data for model training.
-3. **Exploratory Data Analysis (EDA)** – Examines data distribution, variable correlations, and feature patterns through visualizations like pie charts, word clouds, histograms, and bar charts.
-4. **Coffee Price Prediction Model** – Uses a Random Forest Regressor to predict coffee prices based on categorical data.
-5. **Sentiment Intensity Analysis Model** – Employs a Random Forest Regressor to predict ratings from coffee descriptions, enabling sentiment analysis based on customer reviews.
-6. **Coffee Recommendation Model** – Utilizes a TF-IDF vectorizer and cosine similarity to recommend similar coffees based on descriptions.
-7. **Coffee Clustering Model** – Uses K-means clustering to group coffees based on pricing and rating patterns for deeper segmentation.
-8. **Conclusion** – Summarizes the findings, insights, and observations from the analysis and models.
+### Project Pages and Features
+1. `Dataset` – A preview of the Coffee Reviews Dataset, the dataset used for this project. 
+2. `Data Pre-processing` – Processing the data by removing nulls, duplicates, and outliers, tokenizing text data, and encoding object columns.
+3. `EDA` – An Exploratory Data Analysis that focuses on data distribution and correlation of variables tailored for the models we aim to develop. These are visualized through pie charts, word clouds, histograms, and bar charts.
+4. `Coffee Price Prediction Model` – A model that uses Random Forest Regressor to predict coffee prices based on categorical data.
+5. `Sentiment Intensity Analysis Model` – A model that uses Random Forest Regressor to predict ratings based on coffee descriptions.
+6. `Coffee Recommendation Model` – A model that uses TF-IDF vectorizer and cosine similarity to curate coffee recommendations based on similar descriptions.
+7. `Coffee Clustering Model` – A model that uses K-means to group coffees based on price and rating patterns.
+8. `Conclusion` – Contains a summary of the processes and insights gained from the previous steps. 
 
 ---
 
