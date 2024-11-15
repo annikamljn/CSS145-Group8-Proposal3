@@ -1,8 +1,8 @@
 # Coffee Reviews Analysis and Model Training Dashboard using Streamlit  
 
-This Streamlit dashboard is designed to analyze and model a comprehensive coffee dataset that includes details on coffee name, type, origin, and descriptive reviews. The project focuses on **data preprocessing** and **exploratory data analysis (EDA)** to reveal key insights, which serve as the foundation for various machine learning models to **predict prices, analyze sentiment in reviews, provide coffee recommendations**, and **group similar coffees**.
+This Streamlit dashboard is designed to analyze and model a comprehensive coffee dataset that includes details on coffee name, type, origin, and descriptive reviews. The project focuses on **data preprocessing** and **exploratory data analysis (EDA)** to reveal key insights, which serve as the foundation for various machine learning models to **predict prices, analyze sentiment in reviews, provide coffee recommendations**, and **group similar coffees**. This project focuses on predicting coffee prices, analyzing sentiment in reviews, providing coffee recommendations, and clustering coffees based on key characteristics.
 
-##  Group Members
+## 👥 Group Members
 - **Bunag, Annika**
 - **Chua, Denrick**
 - **Mallillin, Gena**
@@ -14,6 +14,9 @@ This Streamlit dashboard is designed to analyze and model a comprehensive coffee
 ### 🔗 Links 
 -  [Streamlit App Link - TO BE UPDATED](https://colab.research.google.com/drive/1wd2m0H3kK7kpx-FXZEfybRLnjRESx-rU?usp=sharing)
 -  [Google Colab Notebook](https://colab.research.google.com/drive/1wd2m0H3kK7kpx-FXZEfybRLnjRESx-rU?usp=sharing)
+
+ ### 📊 Dataset
+-  [Coffee Reviews Dataset(Kaggle)](https://www.kaggle.com/datasets/schmoyote/coffee-reviews-dataset?select=coffee_analysis.csv)
 
 ---
 
