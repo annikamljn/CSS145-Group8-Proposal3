@@ -927,6 +927,25 @@ elif st.session_state.page_selection == "clustering_analysis":
             kmeans.fit(train_scaled)
             inertia.append(kmeans.inertia_)
 
+        st.markdown("""
+        ### Understanding the Model
+
+        The Coffee Clustering Model categorizes coffee into distinct groups based on similar attributes using clustering techniques. This helps identify patterns and group coffees with comparable price and rating characteristics.
+
+        ### Data Preprocessing
+
+        Before clustering, the data undergoes the following steps:
+        - **Feature Selection**: Focused on `Price per 100g (USD)` and `Rating`.
+        - **Handling Missing Values**: Dropped rows with missing data.
+        - **Outlier Removal**: Used the 99th percentile to exclude extreme price values.
+        - **Standardization**: Scaled the data for optimal clustering performance.
+
+        ### Clustering Technique
+
+        - **K-Means Algorithm**: Groups data into clusters by minimizing the distance between points and their assigned cluster centers.
+        - **Elbow Method**: Determines the optimal number of clusters by analyzing inertia (sum of squared distances within clusters).
+        """)
+
         # Plotting the Elbow curve using Plotly
         st.subheader('Elbow Method for Optimal Number of Clusters')
         elbow_fig = px.line(x=K, y=inertia, markers=True, labels={'x': 'Number of clusters', 'y': 'Inertia'})
@@ -948,6 +967,10 @@ elif st.session_state.page_selection == "clustering_analysis":
         # Displaying Silhouette Score
         sil_score = silhouette_score(test_scaled, test_labels)
         st.write(f'Silhouette Score for {optimal_clusters} clusters on test data: {sil_score}')
+
+        st.markdown("""
+        The model identified **3 clusters** as the optimal grouping for the coffee dataset.
+        """)
 
         # Listing some data points from each cluster in the training set
         for cluster in range(optimal_clusters):
@@ -971,25 +994,6 @@ elif st.session_state.page_selection == "clustering_analysis":
         st.plotly_chart(test_scatter_fig)  # Use Streamlit to display the plot
 
         st.markdown("""
-        ### Understanding the Model
-
-        The Coffee Clustering Model categorizes coffee into distinct groups based on similar attributes using clustering techniques. This helps identify patterns and group coffees with comparable price and rating characteristics.
-
-        ### Data Preprocessing
-
-        Before clustering, the data undergoes the following steps:
-        - **Feature Selection**: Focused on `Price per 100g (USD)` and `Rating`.
-        - **Handling Missing Values**: Dropped rows with missing data.
-        - **Outlier Removal**: Used the 99th percentile to exclude extreme price values.
-        - **Standardization**: Scaled the data for optimal clustering performance.
-
-        ### Clustering Technique
-
-        - **K-Means Algorithm**: Groups data into clusters by minimizing the distance between points and their assigned cluster centers.
-        - **Elbow Method**: Determines the optimal number of clusters by analyzing inertia (sum of squared distances within clusters).
-
-        The model identified **3 clusters** as the optimal grouping for the coffee dataset.
-
         ### Evaluation and Insights
 
         - **Silhouette Score**: Measures how well-separated the clusters are, with higher scores indicating better-defined clusters.
@@ -1078,7 +1082,6 @@ elif st.session_state.page_selection == "coffee_price_prediction":
         y = df_coffeeprice_regression['100g_USD']
 
         # Automatically train models when the page is opened
-        st.write("### Training the Decision Tree Regressor")
         dt_model = DecisionTreeRegressor(random_state=42)
         dt_model.fit(X, y)
 
@@ -1089,6 +1092,15 @@ elif st.session_state.page_selection == "coffee_price_prediction":
         st.session_state['dt_model'] = dt_model
         st.session_state['rf_model'] = rf_model
 
+        st.markdown("""
+        ### Understanding the Model
+
+        This coffee price prediction model utilizes a combination of features to estimate the price of coffee per 100g:
+
+        - **Roast Type**: Encoded to represent different coffee roasting styles numerically.
+        - **Bean Origin**: Encoded values for the origin of the coffee beans.
+        - **Roaster Location**: Encoded information about the location of the coffee roaster.
+        """)
 
         # Display code snippets
         st.write("### Decision Tree Regressor Code")
@@ -1112,14 +1124,6 @@ elif st.session_state.page_selection == "coffee_price_prediction":
         st.code(rf_code, language='python')
 
         st.markdown("""
-        ### Understanding the Model
-
-        This coffee price prediction model utilizes a combination of features to estimate the price of coffee per 100g:
-
-        - **Roast Type**: Encoded to represent different coffee roasting styles numerically.
-        - **Bean Origin**: Encoded values for the origin of the coffee beans.
-        - **Roaster Location**: Encoded information about the location of the coffee roaster.
-
         ### Prediction Algorithms
 
         The model employs two regression algorithms to predict coffee prices:
