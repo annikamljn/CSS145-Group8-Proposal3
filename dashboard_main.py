@@ -487,7 +487,7 @@ elif st.session_state.page_selection == "eda":
             ##### Roast types chart #####
             roast_counts = df['roast'].value_counts().reset_index()
             roast_counts.columns = ['Roast', 'Count']
-            create_pie_chart(roast_counts, 'Roast', 'Count', width=400, height=400, key='coffee_roast', title='Distribution of Roast Types')     
+            create_pie_chart(roast_counts, 'Roast', 'Count', width=400, height=400, key='coffee_roast_pie', title='Distribution of Roast Types')     
 
         with col[1]:
             ##### Roasters pie chart #####
@@ -500,7 +500,7 @@ elif st.session_state.page_selection == "eda":
             roaster_counts_top = pd.concat([top_roasters, pd.Series({'Other': other_roasters})]).reset_index()
             roaster_counts_top.columns = ['Roaster', 'Count']
 
-            create_pie_chart(roaster_counts_top, 'Roaster', 'Count', width=400, height=400, key='top_roasters', title='Distribution of Top 20 Coffee Roasters')
+            create_pie_chart(roaster_counts_top, 'Roaster', 'Count', width=400, height=400, key='top_roasters_pie', title='Distribution of Top 20 Coffee Roasters')
 
             ##### Bean Origins 1 Pie Chart #####
             origin_counts = df['origin_1'].value_counts()
@@ -510,7 +510,7 @@ elif st.session_state.page_selection == "eda":
             origin_counts_top = pd.concat([top_origins, pd.Series({'Other': other_origins})]).reset_index()
             origin_counts_top.columns = ['Origin', 'Count']
 
-            create_pie_chart(origin_counts_top, 'Origin', 'Count', width=400, height=400, key='bean_origins', title=f'Distribution of Top {top_n} Bean Origins in "origin_1"')
+            create_pie_chart(origin_counts_top, 'Origin', 'Count', width=400, height=400, key='bean_origins_1_pie', title=f'Distribution of Top {top_n} Bean Origins in "origin_1"')
 
         with col[2]:
             ##### Roaster Locations Pie Chart #####
@@ -518,7 +518,7 @@ elif st.session_state.page_selection == "eda":
 
             loc_counts_df = loc_counts.reset_index()
             loc_counts_df.columns = ['Location', 'Count']
-            create_pie_chart(loc_counts_df, 'Location', 'Count', width=400, height=400, key='roaster_locations', title='Distribution of Roaster Locations')
+            create_pie_chart(loc_counts_df, 'Location', 'Count', width=400, height=400, key='roaster_locations_pie', title='Distribution of Roaster Locations')
 
             ##### Bean Origins 2 Pie Chart #####
             origin_counts_2 = df['origin_2'].value_counts()
@@ -528,7 +528,7 @@ elif st.session_state.page_selection == "eda":
             origin_counts_top_2 = pd.concat([top_origins_2, pd.Series({'Other': other_origins_2})]).reset_index()
             origin_counts_top_2.columns = ['Origin', 'Count']
 
-            create_pie_chart(origin_counts_top_2, 'Origin', 'Count', width=400, height=400, key='bean_origins_2', title=f'Distribution of Top {top_n} Bean Origins in "origin_2"')
+            create_pie_chart(origin_counts_top_2, 'Origin', 'Count', width=400, height=400, key='bean_origins_2_pie', title=f'Distribution of Top {top_n} Bean Origins in "origin_2"')
         
         st.subheader("Insights", divider=True)
         st.markdown("#### Data Distribution Analysis")
@@ -580,7 +580,6 @@ elif st.session_state.page_selection == "eda":
         st.markdown("The **most common rating** of the coffees in this dataset can be between **93 to 94**. The lowest ratings go around **89 to 90** and the highest ratings insulate around **97 and 98**.")
 
         st.markdown("##### ➡️ Text Data")
-
         #### Word Distribution #####
         all_tokens = df['desc_1_processed'].sum() + df['desc_2_processed'].sum() + df['desc_3_processed'].sum()
 
@@ -607,12 +606,17 @@ elif st.session_state.page_selection == "eda":
         plt.savefig(buffer, format='png', bbox_inches='tight', pad_inches=0)  # Remove extra padding
         buffer.seek(0)  # Move to the beginning of the buffer
 
-        # Display the Word Cloud in Streamlit
-        st.image(buffer, caption='Word Cloud from Processed Descriptions', use_column_width=False, width=600)  # Set a specific width
+        # Create columns for WordCloud and description
+        col1, col2 = st.columns(2)
 
-        plt.close()
-        st.markdown("The word cloud presents a summary of the most common words from columns “desc_1”, “desc_2”, and “desc_3” combined. The most prominent words across all the reviews are **“aroma,” “cup,” “variety,”** and **“arabica,”** followed by **“call,” “information,” “dark,” “chocolate,”** and lastly, **“processed.”** Observing the graph, the majority of the words that appear are mostly **objective** rather than subjective. The dataset owner indicates that these columns are reviews, however, it may appear that these lean more toward being descriptive text than sentiments.")
+        with col1:
+            # Display the Word Cloud in Streamlit
+            st.image(buffer, caption='Word Cloud from Processed Descriptions', use_container_width=True)
 
+        with col2:
+            # Description of the Word Cloud
+            st.markdown("The word cloud presents a summary of the most common words from columns “desc_1”, “desc_2”, and “desc_3” combined. The most prominent words across all the reviews are **“aroma,” “cup,” “variety,”** and **“arabica,”** followed by **“call,” “information,” “dark,” “chocolate,”** and lastly, **“processed.”** Observing the graph, the majority of the words that appear are mostly **objective** rather than subjective. The dataset owner indicates that these columns are reviews, however, it may appear that these lean more toward being descriptive text than sentiments.")
+        
         st.divider()
 
         #########################################
