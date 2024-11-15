@@ -947,6 +947,11 @@ elif st.session_state.page_selection == "clustering_analysis":
         """)
 
         # Plotting the Elbow curve using Plotly
+        st.code("""
+        elbow_fig = px.line(x=K, y=inertia, markers=True, labels={'x': 'Number of clusters', 'y': 'Inertia'})
+        elbow_fig.update_layout(title='Elbow Method for Optimal Number of Clusters')
+        st.plotly_chart(elbow_fig)
+        """)
         st.subheader('Elbow Method for Optimal Number of Clusters')
         elbow_fig = px.line(x=K, y=inertia, markers=True, labels={'x': 'Number of clusters', 'y': 'Inertia'})
         elbow_fig.update_layout(title='Elbow Method for Optimal Number of Clusters')
@@ -971,7 +976,10 @@ elif st.session_state.page_selection == "clustering_analysis":
         st.markdown("""
         The model identified **3 clusters** as the optimal grouping for the coffee dataset.
         """)
-
+        st.code("""
+        train_scatter_fig = px.scatter(train_df, x='Price per 100g (Scaled)', y='Rating (Scaled)', color='Cluster', title='Training Data Clusters')
+        """)
+        
         # Listing some data points from each cluster in the training set
         for cluster in range(optimal_clusters):
             st.write(f"\nSample data from Cluster {cluster}:")
@@ -1347,6 +1355,20 @@ elif st.session_state.page_selection == "sentiment_model":
         rmse = np.sqrt(np.mean((y_test - y_pred) ** 2))
 
         st.write(f"The model's Mean Absolute Error (MAE) is 1.1728734991620522 and the Root Mean Squared Error (RMSE) is 1.5956235031050126. These metrics indicate the average magnitude of the model's prediction errors. A lower MAE suggests smaller average errors, while a lower RMSE suggests smaller average squared errors, with more weight given to larger errors.")
+
+        #training and eval
+        st.subheader("Training the Random Forest Regressor model")
+        st.code("""
+        # Initialize and fit the Random Forest Regressor
+        rf = RandomForestRegressor(random_state=42)
+        rf.fit(X_train, y_train)
+        """)
+        st.subheader("Model Evaluation")
+        st.code("""
+        # Calculate and display MAE and RMSE
+        mae = np.mean(np.abs(y_test - y_pred))
+        rmse = np.sqrt(np.mean((y_test - y_pred) ** 2))
+        """)
 
         st.markdown("""
         ### Understanding the Rating Prediction Model
