@@ -1575,20 +1575,28 @@ elif st.session_state.page_selection == "conclusion":
     st.markdown("""
     ### Key Insights and Findings
 
-    Several patterns were found in the coffee dataset by data driven exploration and modeling with the data. The insights of these factors provide tips for the future product and service offerings meant to please the consumers.
+    This project involved conducting an EDA and performing model training using Random Forest Regressor, TF-IDF vectorizer, cosine similarity, and K-means to analyze and make predictions using a coffee reviews dataset.
 
-    #### 1. Understanding Customer Sentiments:
-    We first analyzed customer reviews. The text data processing step involves cleaning, tokenizing, and filtering out common words and the team was able to successfully identify recurring themes which indicate positive and negative sentiment drivers. Word clouds and frequency analyses on the terms most commonly linked to customer satisfaction or dissatisfaction gave me a visual summary of the terms.
+    #### 1. 📊 Dataset Characteristics:
+    - The dataset provides a comprehensive overview of coffee names, origins, types, and descriptive reviews. The dataset only contains two numerical columns, namely `100g_USD` (price) and `rating`. Price values are widely spread out and had a high standard deviation, while rating distributions were moderately spread out. Categorical classes varied in distribution. 
 
-    #### 2. Clustering for Market Segmentation:
-    Different types of clustering techniques were used to define groups of customers with different preferences and expectations. It is found that these clusters represent different types of consumers and these can provide insights on which personalized marketing strategies they could adopt by targeting different consumer needs more specifically.
+    #### 2. 📝 Feature Distributions and Separability:
+    - The most significant features for price prediction were bean origins, while the sentiment intensity analyzer and recommendation models primarily relied on descriptions. The clustering model used both rating and price to analyze patterns.
 
-    #### 3. Sentiment Analysis for Customer Insights:
-    Customer reviews were evaluated with the Sentiment Intensity Analyzer to determine the emotional tone of reviews. This tool successfully quantified the customer sentiment and the satisfaction, the dissatisfaction. These insights help data driven decisions, helping businesses develop and market products based on the real time customer sentiment.
+    #### 3. 📈 **Model Performance (Price Prediction)**  
+   - The sentiment analysis model effectively translates coffee descriptions into predicted ratings, revealing clear sentiment trends in reviews.  
 
-    #### 4. Practical Implications:
-    With these insights to boot, coffee businesses then can better serve consumer needs, optimize product offerings and optimize marketing strategies for stronger customer engagement.
+    #### 4. 📈 **Model Performance (Sentiment Intensity Analysis)**  
+   - The sentiment analysis model effectively translates coffee descriptions into predicted ratings, revealing clear sentiment trends in reviews.  
 
+    #### 5. 📈 **Model Performance (Coffee Recommendation)**  
+   - The recommendation model accurately identifies coffees with similar descriptions, proving useful for personalization.  
+
+    #### 6. 📈 **Model Performance (Clustering Analysis)**  
+   - The clustering model successfully grouped coffees into clusters with shared pricing and rating characteristics, uncovering market trends.  
+   - The model was able split the coffees into 3 groups: low price with average rating, average price with high rating, and high price with average to high ratings.
+
+    
     #### Final Takeaway:
     This analysis puts the spotlight on how data science facilitates the gap between product and customer satisfaction to make for better customer experience and better data driven business growth.
     """)
