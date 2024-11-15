@@ -1002,62 +1002,67 @@ elif st.session_state.page_selection == "coffee_price_prediction":
     tab1, tab2 = st.tabs(["Machine Learning", "Model Evaluation"])
 
     ### Tab 1: Machine Learning ###
-    with tab1:
-        st.subheader("Model Training")
+        with tab1:
+            st.subheader("Model Training")
+            
+            # 1. Create a copy of the DataFrame for regression analysis
+            df_coffeeprice_regression = df.copy()
         
-        # 1. Create a copy of the DataFrame for regression analysis
-        df_coffeeprice_regression = df.copy()
+            # Check if the necessary columns exist
+            required_columns = ['roast', 'origin_2', 'loc_country', '100g_USD']
+            if not all(col in df_coffeeprice_regression.columns for col in required_columns):
+                st.error("The required columns are missing in the DataFrame.")
+                st.stop()
+        
+            # 2. Select relevant columns and rename them if pre-processed
+            df_coffeeprice_regression = df_coffeeprice_regression[required_columns]
+            df_coffeeprice_regression = df_coffeeprice_regression.rename(columns={
+                'origin_2': 'origin_2_processed',
+                'loc_country': 'loc_processed'
+            })
+        
+            # 3. Drop rows with missing values
+            df_coffeeprice_regression = df_coffeeprice_regression.dropna()
+        
+            ### Outlier Handling ###
+            # 4. Remove outliers using the Interquartile Range (IQR) method
+            Q1 = df_coffeeprice_regression['100g_USD'].quantile(0.25)
+            Q3 = df_coffeeprice_regression['100g_USD'].quantile(0.75)
+            IQR = Q3 - Q1
+            lower_bound = Q1 - 1.5 * IQR
+            upper_bound = Q3 + 1.5 * IQR
+            df_coffeeprice_regression = df_coffeeprice_regression[
+                (df_coffeeprice_regression['100g_USD'] >= lower_bound) & 
+                (df_coffeeprice_regression['100g_USD'] <= upper_bound)
+            ]
+        
+            ### Encoding Categorical Variables ###
+            le_roast = LabelEncoder()
+            le_origin_2 = LabelEncoder()
+            le_location = LabelEncoder()
+        
+            df_coffeeprice_regression['roast'] = le_roast.fit_transform(df_coffeeprice_regression['roast'])
+            df_coffeeprice_regression['origin_2_processed'] = le_origin_2.fit_transform(df_coffeeprice_regression['origin_2_processed'])
+            df_coffeeprice_regression['loc_processed'] = le_location.fit_transform(df_coffeeprice_regression['loc_processed'])
+        
+            # 6. Define features (X) and target (y)
+            X = df_coffeeprice_regression[['roast', 'origin_2_processed', 'loc_processed']]
+            y = df_coffeeprice_regression['100g_USD']
+        
+            ### Model Training ###
+            if st.button("Train Models"):
+                # Split data
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        
+                # Train models
+                rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+                rf_model.fit(X_train, y_train)
+        
+                dt_model = DecisionTreeRegressor(random_state=42)
+                dt_model.fit(X_train, y_train)
+        
+                st.success("Models trained successfully!")
 
-        # 2. Select relevant columns and rename them if pre-processed
-        df_coffeeprice_regression = df_coffeeprice_regression[['roast', 'origin_2', 'loc_country', '100g_USD']]
-        df_coffeeprice_regression = df_coffeeprice_regression.rename(columns={
-            'origin_2': 'origin_2_processed',
-            'loc_country': 'loc_processed'
-        })
-
-        # 3. Drop rows with missing values
-        df_coffeeprice_regression = df_coffeeprice_regression.dropna()
-
-        ### Outlier Handling ###
-        # 4. Remove outliers using the Interquartile Range (IQR) method
-        Q1 = df_coffeeprice_regression['100g_USD'].quantile(0.25)
-        Q3 = df_coffeeprice_regression['100g_USD'].quantile(0.75)
-        IQR = Q3 - Q1
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
-        df_coffeeprice_regression = df_coffeeprice_regression[
-            (df_coffeeprice_regression['100g_USD'] >= lower_bound) & 
-            (df_coffeeprice_regression['100g_USD'] <= upper_bound)
-        ]
-
-        ### Encoding Categorical Variables ###
-        # 5. Encode categorical features into numerical values
-        le_roast = LabelEncoder()
-        le_origin_2 = LabelEncoder()
-        le_location = LabelEncoder()
-
-        df_coffeeprice_regression['roast'] = le_roast.fit_transform(df_coffeeprice_regression['roast'])
-        df_coffeeprice_regression['origin_2_processed'] = le_origin_2.fit_transform(df_coffeeprice_regression['origin_2_processed'])
-        df_coffeeprice_regression['loc_processed'] = le_location.fit_transform(df_coffeeprice_regression['loc_processed'])
-
-        # 6. Define features (X) and target (y)
-        X = df_coffeeprice_regression[['roast', 'origin_2_processed', 'loc_processed']]
-        y = df_coffeeprice_regression['100g_USD']
-
-        ### Data Splitting ###
-        # 7. Split data into training (70%) and testing (30%) sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
-        ### Model Training ###
-        # 8. Train a Random Forest Regressor model
-        rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
-        rf_model.fit(X_train, y_train)
-
-        # 9. Train a Decision Tree Regressor model
-        dt_model = DecisionTreeRegressor(random_state=42)
-        dt_model.fit(X_train, y_train)
-
-        st.success("Models trained successfully!")
 
     ### Tab 2: Model Evaluation ###
     with tab2:
