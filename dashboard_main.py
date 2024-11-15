@@ -921,29 +921,33 @@ elif st.session_state.page_selection == "clustering_analysis":
 elif st.session_state.page_selection == "coffee_price_prediction":
     st.header("☕ Coffee Price Prediction Model")
 
-    # Create a copy of the original DataFrame with a unique name for regression
-    df_coffeeprice_regression = st.session_state.df.copy()  # Use cleaned DataFrame stored in session state
+    # 1. Copy the original DataFrame stored in session state for use in regression analysis
+    df_coffeeprice_regression = st.session_state.df.copy()
 
-    # Select relevant columns and rename them if pre-processed (already cleaned)
+    # 2. Select relevant columns and rename them if they have been pre-processed
     df_coffeeprice_regression = df_coffeeprice_regression[['roast', 'origin_2', 'loc_country', '100g_USD']]
     df_coffeeprice_regression = df_coffeeprice_regression.rename(columns={
         'origin_2': 'origin_2_processed',
         'loc_country': 'loc_processed'
     })
-
-    # Drop rows with missing values if any
+    
+    # 3. Drop rows with missing values to ensure a clean dataset for regression
     df_coffeeprice_regression = df_coffeeprice_regression.dropna()
 
-    # Handling Outliers using IQR for '100g_USD'
+    ### Outlier Handling ###
+    # 4. Use the Interquartile Range (IQR) to remove outliers in the target variable '100g_USD'
     Q1 = df_coffeeprice_regression['100g_USD'].quantile(0.25)
     Q3 = df_coffeeprice_regression['100g_USD'].quantile(0.75)
     IQR = Q3 - Q1
     lower_bound = Q1 - 1.5 * IQR
     upper_bound = Q3 + 1.5 * IQR
-    df_coffeeprice_regression = df_coffeeprice_regression[(df_coffeeprice_regression['100g_USD'] >= lower_bound) & 
-                                                          (df_coffeeprice_regression['100g_USD'] <= upper_bound)]
+    df_coffeeprice_regression = df_coffeeprice_regression[
+        (df_coffeeprice_regression['100g_USD'] >= lower_bound) &
+        (df_coffeeprice_regression['100g_USD'] <= upper_bound)
+    ]
 
-    # Encoding Categorical Variables
+    ### Encoding Categorical Variables ###
+    # 5. Convert categorical features into numerical values using Label Encoding
     le_roast = LabelEncoder()
     le_origin_2 = LabelEncoder()
     le_location = LabelEncoder()
@@ -952,29 +956,36 @@ elif st.session_state.page_selection == "coffee_price_prediction":
     df_coffeeprice_regression['origin_2_processed'] = le_origin_2.fit_transform(df_coffeeprice_regression['origin_2_processed'])
     df_coffeeprice_regression['loc_processed'] = le_location.fit_transform(df_coffeeprice_regression['loc_processed'])
 
-    # Define features (X) and target (y)
+    # 6. Define features (X) and target variable (y) for regression
     X = df_coffeeprice_regression[['roast', 'origin_2_processed', 'loc_processed']]
     y = df_coffeeprice_regression['100g_USD']
 
-    # No need for SMOTE since this is a regression problem
-    # Split the data into training (70%) and testing (30%) sets
+    ### Data Splitting ###
+    # 7. Split the data into training (70%) and testing (30%) sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-    # Random Forest Regressor
+    ### Random Forest Regression Model ###
+    # 8. Train a Random Forest Regressor model on the training data
     rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
     rf_model.fit(X_train, y_train)
+
+    # 9. Predict coffee prices on the test data and calculate Mean Squared Error (MSE)
     rf_pred = rf_model.predict(X_test)
     rf_mse = mean_squared_error(y_test, rf_pred)
     st.write(f"Random Forest - Mean Squared Error: {rf_mse:.2f}")
 
-    # Decision Tree Regressor
+    ### Decision Tree Regression Model ###
+    # 10. Train a Decision Tree Regressor model on the training data
     dt_model = DecisionTreeRegressor(random_state=42)
     dt_model.fit(X_train, y_train)
+
+    # 11. Predict coffee prices on the test data and calculate Mean Squared Error (MSE)
     dt_pred = dt_model.predict(X_test)
     dt_mse = mean_squared_error(y_test, dt_pred)
     st.write(f"Decision Tree - Mean Squared Error: {dt_mse:.2f}")
 
-    # Visualize Actual vs Predicted Prices for Random Forest
+    ### Visualization: Actual vs Predicted Prices ###
+    # 12. Create a scatter plot to visualize actual vs. predicted prices using Random Forest
     st.write("### Actual vs Predicted Prices (Random Forest)")
     fig, ax = plt.subplots()
     ax.scatter(y_test, rf_pred, label='Random Forest', alpha=0.7)
@@ -984,11 +995,13 @@ elif st.session_state.page_selection == "coffee_price_prediction":
     ax.legend()
     st.pyplot(fig)
 
-    # Feature Importance Analysis for Random Forest
+    ### Feature Importance Analysis ###
+    # 13. Display feature importance scores for Random Forest model
     st.write("### Feature Importance (Random Forest)")
     rf_importance = rf_model.feature_importances_
     for i, score in enumerate(rf_importance):
         st.write(f"Feature: {X.columns[i]}, Score: {score:.4f}")
+
                 
 ###################################################################
 # Description to Rating Page ################################################
